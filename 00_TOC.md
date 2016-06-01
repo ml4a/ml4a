@@ -9,4 +9,6 @@
     - ConvNets
     - RNNs
 - Reinforcement Learning
+    - Q-learning
+    - Deep Q Networks
 
