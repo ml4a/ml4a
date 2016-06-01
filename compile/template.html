@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>{{ title }}</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/styles/color-brewer.min.css">
+</head>
+
+<body>
+    <main>{{body|safe}}</main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.8.0/highlight.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('pre').each(function(i, e) {hljs.highlightBlock(e)});
+            MathJax.Hub.Config({
+                tex2jax: {
+                    inlineMath: [["$","$"]],
+                    displayMath: [['$$','$$']],
+                    processEscapes: true
+                },
+                "HTML-CSS": {
+                    linebreaks: { automatic: true }
+                }
+            });
+            MathJax.Hub.Startup.onload();
+        });
+    </script>
+</body>
+</html>
