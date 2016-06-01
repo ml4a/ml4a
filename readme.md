@@ -1,5 +1,7 @@
 ~ WIP ~
 
+![](http://i.stack.imgur.com/tM18j.gif)
+
 to compile:
 
     python compile
