@@ -1,6 +1,6 @@
 ---
 layout: guide
-title: Convolutional Neural Networks: MNIST classification with Keras
+title: "Convolutional Neural Networks: MNIST classification with Keras"
 ---
 
 (this is an annotated version of Keras's [example MNIST CNN code](https://github.com/fchollet/keras/blob/master/examples/mnist_cnn.py))

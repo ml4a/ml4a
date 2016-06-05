@@ -1,6 +1,6 @@
 ---
 layout: guide
-title: Reinforcement Learning: Deep Q-Networks
+title: "Reinforcement Learning: Deep Q-Networks"
 ---
 
 If you aren't familiar with reinforcement learning, check out the previous guide on reinforcement learning for an introduction.
