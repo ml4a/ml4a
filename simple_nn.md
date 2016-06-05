@@ -14,13 +14,13 @@ With machine learning we are trying to find a hidden function that describes dat
 
 ```python
 def our_function(X):
-    params = np.array([[2, -1, 5]])
+    params = np.array([[2., -1., 5.]])
     return np.dot(X, params.T)
 
 X = np.array([
-    [4,9,1],
-    [2,5,6],
-    [1,8,3]
+    [4.,9.,1.],
+    [2.,5.,6.],
+    [1.,8.,3.]
 ])
 
 y = our_function(X)
