@@ -33,7 +33,7 @@ You might see where this is going. The data looks like a line, and lines in gene
 
 Remember that lines vary depending on what the values of $m$ and $b$ are:
 
-![Varying lines](guides/assets/lines.svg)
+![Varying lines](/guides/assets/lines.svg)
 
 Thus $m$ and $b$ uniquely define a function - thus they are called the _parameters_ of the function - and when it comes to machine learning, these parameters are what we ultimately want to learn. So when I say there are infinitely many functions to choose from, it is because $m$ and $b$ can pretty much take on any value. Machine learning techniques essentially search through these possible functions to find parameters that best fit the data you have. One way machine learning algorithms are differentiated is by how exactly they conduct this search (i.e. how they learn parameters).
 
@@ -77,7 +77,7 @@ Note that we never specified how _many_ numbers (also called _components_) a vec
 
 We can get a better sense of this by plotting a vector out. For instance, a 2D vector `[5,0]` would look like:
 
-![A vector](guides/assets/vector.svg)
+![A vector](/guides/assets/vector.svg)
 
 So in a sense vectors can be thought of lines that "point" to the position they specify - here the vector is a line "pointing" to `[5,0]`. If the vector were 3D, e.g. `[8,1,3]`, then we would have to visualize it in 3D space, and so on.
 
