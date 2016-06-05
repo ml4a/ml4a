@@ -1,3 +1,8 @@
+---
+layout: guide
+title: A Simple Neural Network with numpy
+---
+
 This is a very simple neural network example to demonstrate how they work.
 
 We will just use `numpy` to be fully transparent about each step.

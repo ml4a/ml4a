@@ -1,3 +1,8 @@
+---
+layout: guide
+title: Reinforcement Learning: Deep Q-Networks
+---
+
 If you aren't familiar with reinforcement learning, check out the previous guide on reinforcement learning for an introduction.
 
 In the previous guide we implemented the Q function as a lookup table. That worked well enough for that scenario because it had a fairly small state space. However, consider something like [DeepMind's Atari player](http://www.wired.co.uk/article/google-deepmind-atari). A state in that task is a unique configuration of pixels. All those Atari games are color, so each pixel has three values, and there are quite a few pixels. So there is a massive state space for all possible configurations of pixels, and we simply can't implement a lookup table encompassing all of these states.

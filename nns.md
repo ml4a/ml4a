@@ -1,4 +1,7 @@
-# Neural Networks
+---
+layout: guide
+title: Neural Networks
+---
 
 Neural networks are currently the most prominent machine learning method, and not without good reason - they are very powerful. Here I will do a fairly quick introduction to their basics. I won't go into their history and I won't go too far into the technical weeds - just enough to equip you for learning more on your own. Additional guides will go deeper into specific architectures and approaches. I will try to be very explicit about what parts are "up in the air" (i.e. modifiable) so you get a sense of where you can experiment with new neural networks.
 

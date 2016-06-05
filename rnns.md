@@ -1,4 +1,7 @@
-# Recurrent Neural Networks: Character RNNs with Keras
+---
+layout: guide
+title: Recurrent Neural Networks: Character RNNs with Keras
+---
 
 Often we are not interested in isolated datapoints, but rather datapoints within a context of others. A datapoint may mean something different depending on what's come before it. This can typically be represented as some kind of _sequence_ of datapoints, perhaps the most common of which is a time series.
 

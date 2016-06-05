@@ -1,4 +1,7 @@
-# Reinforcement Learning
+---
+layout: guide
+title: Reinforcement Learning
+---
 
 Reinforcement learning involves training agents - programs, robots, etc - such that they learn how to behave in a particular environment. Reinforcement learning agents learn by interacting with their environment and seeing what happens as a result of their actions.
 
