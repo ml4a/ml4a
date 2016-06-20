@@ -59,7 +59,7 @@ We're framing our task as a classification task. Given a sequence of characters,
 
 We use the _softmax_ activation function on our output layer - this function is used for categorical output. It turns the output into a probability distribution over the categories (i.e. it makes the values the network outputs sum to 1). So the network will essentially tell us how strongly it feels about each character being the next one.
 
-The categorical cross-entropy loss the standard loss function for multilabel classification (TODO more detail)
+The categorical cross-entropy loss the standard loss function for multilabel classification, which basically penalizes the network more the further off it is from the correct label.
 
 We use dropout here to prevent overfitting - we don't want the network to just return things already in the text, we want it to have some wiggle room and create novelty! Dropout is a technique where, in training, some percent (here, 20%) of random neurons of the associated layer are "turned off" for that epoch. This prevents overfitting but preventing the network from relying on particular neurons.
 
@@ -126,7 +126,10 @@ char_labels = {
 }
 
 # matrix form
-# only five characters, so the vectors only need to have five components
+# the example uses only five kinds of characters,
+# so the vectors only need to have five components,
+# and since the input phrase has seven characters,
+# the matrix has seven vectors.
 [
     [0, 0, 1, 0, 0], # c
     [1, 0, 0, 0, 0], # a
@@ -138,9 +141,11 @@ char_labels = {
 ]
 ```
 
-That matrix represents a _single_ training example, so we have a stack of those matrices (hence a 3-tensor). The outputs for each example are each a one-hot vector. With that in mind:
+That matrix represents a _single_ training example, so for our full set of training examples, we'd have a stack of those matrices (hence a 3-tensor).
 
-# TODO visualize the input 3-tensor
+![A 3-tensor of training examples](/guides/assets/rnn_3tensor.png)
+
+And the outputs for each example are each a one-hot vector (i.e. a single character). With that in mind:
 
 ```python
 # using bool to reduce memory usage

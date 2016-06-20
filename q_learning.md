@@ -28,7 +28,7 @@ For simplicity, we are going to consider a _fully-observed_ scenario; that is, w
 
 ## The environment
 
-A reinforcement learning agent needs an environment to explore and interact with, so let's create that first.
+A reinforcement learning agent needs an environment to explore and interact with, so let's create that first. In other guides we'll use the [OpenAI Gym](https://gym.openai.com/), but I think seeing how an environment is defined makes understanding easier.
 
 This will just be a simple set of discrete coordinates. So the states in our scenario will just be `(x,y)` coordinate positions.
 
