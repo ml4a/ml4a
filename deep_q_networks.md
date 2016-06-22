@@ -5,15 +5,19 @@ title: "Reinforcement Learning: Deep Q-Networks"
 
 If you aren't familiar with reinforcement learning, check out the previous guide on reinforcement learning for an introduction.
 
-In the previous guide we implemented the Q function as a lookup table. That worked well enough for that scenario because it had a fairly small state space. However, consider something like [DeepMind's Atari player](http://www.wired.co.uk/article/google-deepmind-atari). A state in that task is a unique configuration of pixels. All those Atari games are color, so each pixel has three values, and there are quite a few pixels. So there is a massive state space for all possible configurations of pixels, and we simply can't implement a lookup table encompassing all of these states.
+In the previous guide we implemented the Q function as a lookup table. That worked well enough for that scenario because it had a fairly small state space. However, consider something like [DeepMind's Atari player](http://www.wired.co.uk/article/google-deepmind-atari). A state in that task is a unique configuration of pixels. All those Atari games are color, so each pixel has three values (R,G,B), and there are quite a few pixels. So there is a massive state space for all possible configurations of pixels, and we simply can't implement a lookup table encompassing all of these states - it would take up too much memory.
 
-Instead, we can learn a Q function that approximately maps a set of pixel values and an action to some value. We could implement this Q function as a neural network and have it learn how to predict rewards for each action given an input state. This is the general idea behind _deep Q-learning_ (i.e. deep Q networks, or DQNs).
+Instead, we can learn a Q _function_ that approximately maps a set of pixel values and an action to some value. We could implement this Q function as a neural network and have it learn how to predict rewards for each action given an input state. This is the general idea behind _deep Q-learning_ (i.e. deep Q networks, or DQNs).
 
 Here we'll put together a simple DQN agent that learns how to play a simple game of catch. The agent controls a paddle at the bottom of the screen that it can move left, right, or not at all (so there are three possible action). An object falls from the top of the screen, and the agent wins if it catches it (a reward of +1). Otherwise, it loses (a reward of -1).
 
 We'll implement the game in black-and-white so that the pixels in the game can be represented as 1 or 0.
 
-Using DQNs are quite like using neural networks in ways you may be more familiar with. Here we'll take a vector that represents the screen, feed it through the network, and the network will learn to associate it with some reward value. This scenario is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
+Using DQNs are quite like using neural networks in ways you may be more familiar with. Here we'll take a vector that represents the screen, feed it through the network, and the network will output a distribution of values over possible actions. You can think of it as a classification problem: given this input state, label it with the best action to take.
+
+TODO atari image
+
+This scenario is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
 
 To start I'll present the code for the catch game itself. It's not important that you understand this code - the part we care about is the agent itself.
 
@@ -191,7 +195,9 @@ You'll see that this is quite similar to the previous Q-learning agent we implem
 
 The biggest difference are these `remember` and `replay` methods.
 
-A challenge with DQNs is that they can be unstable - in particular, they have a problem of _catastrophic forgetting_ in which later experiences overwrite earlier ones. A method around this is called _experience replay_ in which we store experienced states and their resulting rewards (as "memories"). Between actions we sample a batch of these memories (this is what the `_prep_batch` method does) and use them to train the neural network ("replay"). This will become clearer in the code below, where we actually train the agent.
+A challenge with DQNs is that they can be unstable - in particular, they exhibit a problem known as _catastrophic forgetting_ in which later experiences overwrite earlier ones. When this happens, the agent is unable to take full advantage of everything it's learned, only what it's learned most recently.
+
+A method to deal with this is called _experience replay_. We just store experienced states and their resulting rewards (as "memories"), then between actions we sample a batch of these memories (this is what the `_prep_batch` method does) and use them to train the neural network (i.e. "replay" these remembered experiences). This will become clearer in the code below, where we actually train the agent.
 
 ```python
 import os
