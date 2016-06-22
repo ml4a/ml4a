@@ -140,7 +140,7 @@ class QLearner():
 
         # initialize Q
         self.Q = {}
-        
+
     def reset(self, state):
         self.state = state
         self.reward = 0
@@ -219,7 +219,7 @@ agent = QLearner(pos, env, env.reward, discount=0.9, learning_rate=1)
 print('without training...')
 agent.explore = 0
 for i in range(10):
-    game_over = False    
+    game_over = False
     # start at a random position
     pos = random.choice(env.starting_positions)
     agent.reset(pos)
@@ -235,7 +235,7 @@ for i in range(episodes):
     #print('episode:', i)
     game_over = False
     steps = 0
-    
+
     # start at a random position
     pos = random.choice(env.starting_positions)
     agent.reset(pos)
@@ -243,7 +243,7 @@ for i in range(episodes):
         agent.step()
         steps += 1
         game_over = env.is_terminal_state(agent.state)
-    
+
 # print out the agent's Q table
 print('learned Q table:')
 for pos, vals in agent.Q.items():
@@ -252,7 +252,7 @@ for pos, vals in agent.Q.items():
 # let's see how it does
 print('after training...')
 agent.explore = 0
-for i in range(10): 
+for i in range(10):
     # start at a random position
     pos = random.choice(env.starting_positions)
     agent.reset(pos)
@@ -261,6 +261,60 @@ for i in range(10):
         agent.step()
         game_over = env.is_terminal_state(agent.state)
     print('reward:', agent.reward)
+```
+
+```
+without training...
+reward: 3
+reward: -10
+reward: 10
+reward: -2
+reward: 5
+reward: -1
+reward: -1
+reward: 4
+reward: 4
+reward: -8
+
+training...
+learned Q table:
+(0, 1) -> {'left': 0.935, 'down': 3.5, 'right': 3.5}
+(3, 2) -> {'left': 0, 'up': 0, 'right': 0}
+(1, 3) -> {'left': 5.0, 'up': 2.15, 'down': 5.0, 'right': 4.58}
+(3, 0) -> {'up': 0, 'right': 0}
+(2, 2) -> {'left': 0, 'up': 0, 'down': 0, 'right': 0}
+(1, 4) -> {'left': 3.5, 'up': 3.122, 'down': -1.0, 'right': 6.2}
+(0, 0) -> {'down': 2.15, 'right': 2.15}
+(0, 5) -> {'left': 0, 'down': 0, 'right': 0}
+(2, 1) -> {'left': 0.935, 'up': 3.5, 'down': 3.5, 'right': -1.0}
+(2, 4) -> {'left': 0, 'up': 0, 'down': 0, 'right': 0}
+(1, 0) -> {'up': 0.935, 'down': 0.935, 'right': 3.5}
+(2, 5) -> {'left': -1.0, 'up': 6.2, 'down': 10.0, 'right': -1.0}
+(0, 3) -> {'left': 3.5, 'down': 3.5, 'right': 3.122}
+(3, 5) -> {'left': 0, 'up': 0, 'right': 0}
+(1, 2) -> {'left': 0, 'up': 0, 'down': 0, 'right': 0}
+(1, 5) -> {'left': 4.58, 'up': -1.0, 'down': 8.0, 'right': -1.0}
+(3, 1) -> {'left': -1.0, 'up': 2.15, 'right': 5.0}
+(2, 6) -> {'left': 0, 'up': 0, 'down': 0}
+(0, 2) -> {'left': 2.15, 'down': 5.0, 'right': 2.15}
+(2, 0) -> {'up': 2.15, 'down': -1.0, 'right': 2.15}
+(3, 6) -> {'left': 10.0, 'up': -1.0}
+(0, 4) -> {'left': 2.15, 'down': 4.58, 'right': -1.0}
+(2, 3) -> {'left': 0, 'up': 0, 'down': 0, 'right': 0}
+(1, 6) -> {'left': 0, 'up': 0, 'down': 0}
+(1, 1) -> {'left': 2.15, 'up': 2.15, 'down': 2.15, 'right': 5.0}
+
+after training...
+reward: 3
+reward: 7
+reward: 8
+reward: 5
+reward: 5
+reward: 4
+reward: 10
+reward: 4
+reward: 10
+reward: 5
 ```
 
 Here we're training the agent for 500 episodes, which should be enough for it to thoroughly explore the space. If you don't train an agent enough it may fail to learn optimal behaviors - it hasn't experienced enough yet.
@@ -356,7 +410,7 @@ for i, row in enumerate(env.grid):
                 agent.Q.get((i,j), {}),
                 env.value((i,j)),
                 show_qvals=False) for j, col in enumerate(row)])
-        
+
 
 # display
 print('learned policy')
@@ -364,6 +418,8 @@ renderer = Renderer(grid, cell_size=100)
 renderer.render().save('/tmp/gridworld.png')
 IPdisplay.Image(filename='/tmp/gridworld.png')
 ```
+
+![The agent's learned policy](/guides/assets/learned_policy.png)
 
 If you've trained your agent enough, the learned policy depicted here should look pretty reasonable. If the agent is within a few steps from the best reward, it will move towards that. If it's a little too far, it'll move towards the closer reward. And it should consistently be moving away from holes.
 
