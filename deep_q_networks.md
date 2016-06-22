@@ -13,11 +13,13 @@ Here we'll put together a simple DQN agent that learns how to play a simple game
 
 We'll implement the game in black-and-white so that the pixels in the game can be represented as 1 or 0.
 
-Using DQNs are quite like using neural networks in ways you may be more familiar with. Here we'll take a vector that represents the screen, feed it through the network, and the network will output a distribution of values over possible actions. You can think of it as a classification problem: given this input state, label it with the best action to take.
+Using DQNs are quite like using neural networks in ways you may be more familiar with. Here we'll take a vector that represents the screen, feed it through the network, and the network will output a distribution of values over possible actions. You can kind of think of it as a classification problem: given this input state, label it with the best action to take.
 
-TODO atari image
+For example, this is the [architecture of the Atari player](http://home.uchicago.edu/~arij/journalclub/papers/2015_Mnih_et_al.pdf):
 
-This scenario is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
+![Atari player DQN](/guides/assets/atari_dqn.png)
+
+The scenario we're dealing with is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
 
 To start I'll present the code for the catch game itself. It's not important that you understand this code - the part we care about is the agent itself.
 
