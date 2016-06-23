@@ -21,6 +21,10 @@ For example, this is the [architecture of the Atari player](http://home.uchicago
 
 The scenario we're dealing with is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
 
+Here's what our catch game will look like:
+
+![Simple catch game](/guides/assets/catch_game.png)
+
 To start I'll present the code for the catch game itself. It's not important that you understand this code - the part we care about is the agent itself.
 
 Note that this needs to be run in the terminal in order to visualize the game.
@@ -263,3 +267,5 @@ print('winner!' if reward == 1 else 'loser!')
 ```
 
 After 10,000 epochs, the agent I trained won about 90% of the time. Not bad from the 30% or so it started at!
+
+![Winner](/guide/assets/catch_game_trained.gif)

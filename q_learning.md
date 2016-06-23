@@ -263,6 +263,8 @@ for i in range(10):
     print('reward:', agent.reward)
 ```
 
+And the output:
+
 ```
 without training...
 reward: 3
@@ -418,6 +420,8 @@ renderer = Renderer(grid, cell_size=100)
 renderer.render().save('/tmp/gridworld.png')
 IPdisplay.Image(filename='/tmp/gridworld.png')
 ```
+
+The learned policy:
 
 ![The agent's learned policy](/guides/assets/learned_policy.png)
 
