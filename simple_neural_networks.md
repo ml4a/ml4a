@@ -17,6 +17,7 @@ Generally these units are organized into layers, and each layer connects to the 
 
 It's a vector if each incoming unit outputs a scalar, it's a matrix if each incoming unit outputs a vector, and so on.
 
+{:.center}
 ![A feedforward neural network, [source](http://cs.stanford.edu/people/eroberts/courses/soco/projects/neural-networks/Architecture/feedforward.html)](/guides/assets/feedforward.jpg)
 
 To keep things simple, we'll just consider the case where the input is a vector (i.e. each unit outputs a scalar).

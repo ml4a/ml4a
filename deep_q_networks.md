@@ -17,7 +17,7 @@ Using DQNs are quite like using neural networks in ways you may be more familiar
 
 For example, this is the [architecture of the Atari player](http://home.uchicago.edu/~arij/journalclub/papers/2015_Mnih_et_al.pdf):
 
-![Atari player DQN](/guides/assets/atari_dqn.png)
+![Atari player DQN](/guides/assets/atari_dqn.png){:width="100%"}
 
 The scenario we're dealing with is simple enough that we don't need convolutional neural networks, but we could easily extend it in that way if we wanted (just replace our vanilla neural network with a convolutional one).
 
