@@ -7,19 +7,23 @@ A question that might come up when working with text is: how do you turn text in
 
 In the past, common techniques included methods like one-hot vectors, in which we'd have a different number associated with each word, and then turn "on" the value at that index in a vector (making it 1) and setting all the rest to zero.
 
-One-hot vectors worked well enough but it's not a particularly rich or meaningful representation of text. The indices of words are arbitrary and don't describe any relationship between the two.
+For instance, if we have the sentence: "I like dogs", we'd have a 3-dimensional one-hot vector (3-dimensional because there are three words), so the word "I" might be `[1,0,0]`, the word "like" might be `[0,1,0]`, and "dogs" would be `[0,0,1]`.
 
-[_Word embeddings_](http://arxiv.org/pdf/1301.3781.pdf) provide a meaningful representation of text. Word embeddings, called such because they involve embedding a word in some high-dimensional space, that is, they map a word to some vector, much like one-hot vectors. The difference is that word embeddings are learned for a particular task, so they end up being meaningful representations rather than arbitrary:
+One-hot vectors worked well enough for some tasks but it's not a particularly rich or meaningful representation of text. The indices of these words are arbitrary (there's no reason `[1,0,0]` had to be "I") and don't describe any relationship between the them.
 
-![Word embedding relationships, [source](https://www.tensorflow.org/versions/r0.9/tutorials/word2vec/index.html)](https://www.tensorflow.org/versions/r0.9/images/linear-relationships.png){:width="100%"}
+[_Word embeddings_](http://arxiv.org/pdf/1301.3781.pdf) provide a meaningful representation of text. Word embeddings, called such because they involve embedding a word in some high-dimensional space, that is, they map a word to some vector, much like one-hot vectors. The difference is that word embeddings are learned for a particular task, so they end up being meaningful representations.
 
-A notable property of word embeddings is that vector arithmetic is also meaningful. Perhaps the most well-known example of this is:
+For example, the relationships between words are meaningful (image from the [TensorFlow documentation]((https://www.tensorflow.org/versions/r0.9/tutorials/word2vec/index.html)):
+
+![Word embedding relationships](https://www.tensorflow.org/versions/r0.9/images/linear-relationships.png){:width="100%"}
+
+A notable property that emerges is that vector arithmetic is also meaningful. Perhaps the most well-known example of this is:
 
 $$
 \text{king} - \text{man} + \text{woman} = \text{queen}
 $$
 
-[Chris Olah's piece on word embeddings](Deep Learning, NLP, and Representations) delves more into why this is.
+([Chris Olah's piece on word embeddings](Deep Learning, NLP, and Representations) delves more into why this is.)
 
 So the positioning of these words in this space actually tells us something about how these words are used.
 
@@ -55,7 +59,7 @@ The skip-gram task is as follows:
 
 For this particular example we'd want the network to output 1 (i.e. yes, that is the true context).
 
-If we set $w_i$ to 'frogs', then we'd want the network output 0 - in our one sentence corpus, `['I', 'think', 'are', 'cool']` is not the true context for 'frogs'. Sorry frogs 🐸.
+If we set $w_i$ to 'frogs', then we'd want the network output 0. In our one sentence corpus, `['I', 'think', 'are', 'cool']` is not the true context for 'frogs'. Sorry frogs 🐸.
 
 ## Building the model
 
@@ -87,8 +91,8 @@ def text_generator():
 Before we go any further, we need to map the words in our corpus to numbers, so that we have a consistent way of referring to them. First we'll fit a tokenizer to the corpus:
 
 ```python
-# our corpus is small enough where
-# we don't need to worry about this, but good practice
+# our corpus is small enough where we
+# don't need to worry about this, but good practice
 max_vocab_size = 50000
 
 # `filters` specify what characters to get rid of
@@ -140,18 +144,20 @@ Finally, we can train the model.
 ```python
 n_epochs = 60
 
-# used to sample words
+# used to sample words (indices)
 sampling_table = make_sampling_table(vocab_size)
 
 for i in range(n_epochs):
     loss = 0
     for seq in tokenizer.texts_to_sequences_generator(text_generator()):
         # generate skip-gram training examples
-        # `couples` consists of the pivots (i.e. target words) and surrounding contexts
-        # `labels` represent if the context is true or not
-        # `window_size` determines how far to look between words
-        # `negative_samples` specifies the ratio of negative couples (i.e. couples where the context is false)
-        # to generate with respect to the positive couples; i.e. `negative_samples=4` means "generate 4 times as many negative samples"
+        # - `couples` consists of the pivots (i.e. target words) and surrounding contexts
+        # - `labels` represent if the context is true or not
+        # - `window_size` determines how far to look between words
+        # - `negative_samples` specifies the ratio of negative couples
+        #    (i.e. couples where the context is false)
+        #    to generate with respect to the positive couples;
+        #    i.e. `negative_samples=4` means "generate 4 times as many negative samples"
         couples, labels = skipgrams(seq, vocab_size, window_size=5, negative_samples=4, sampling_table=sampling_table)
         if couples:
             pivot, context = zip(*couples)
@@ -273,7 +279,7 @@ This will give us a better sense of the quality of our embeddings: we should see
 ```python
 from sklearn manifold import TSNE
 
-# n_components is the number of dimensions to reduce to
+# `n_components` is the number of dimensions to reduce to
 tsne = TSNE(n_components=2)
 
 # apply the dimensionality reduction
@@ -299,7 +305,7 @@ ax.scatter(xs, ys)
 
 # annotate each point with its word
 for i, point in enumerate(points):
-    ax.annotate(reverse_word_index.get(str(i)),
+    ax.annotate(reverse_word_index[i]),
                 (xs[i], ys[i]),
                 fontsize=8)
 
@@ -307,6 +313,8 @@ plt.savefig('tsne.png')
 ```
 
 [![tSNE of State of the Union word embeddings](/guides/assets/tsne.png){:width="100%"}](/guides/assets/tsne.png)
+
+This looks pretty good! It could certainly be improved upon, with more data or more training, but it's a great start.
 
 ## Further Reading
 
