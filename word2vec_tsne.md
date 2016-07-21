@@ -11,7 +11,7 @@ One-hot vectors worked well enough but it's not a particularly rich or meaningfu
 
 [_Word embeddings_](http://arxiv.org/pdf/1301.3781.pdf) provide a meaningful representation of text. Word embeddings, called such because they involve embedding a word in some high-dimensional space, that is, they map a word to some vector, much like one-hot vectors. The difference is that word embeddings are learned for a particular task, so they end up being meaningful representations rather than arbitrary:
 
-![Word embedding relationships, [source](https://www.tensorflow.org/versions/r0.9/tutorials/word2vec/index.html)](https://www.tensorflow.org/versions/r0.9/images/linear-relationships.png)
+![Word embedding relationships, [source](https://www.tensorflow.org/versions/r0.9/tutorials/word2vec/index.html)](https://www.tensorflow.org/versions/r0.9/images/linear-relationships.png){:width="100%"}
 
 A notable property of word embeddings is that vector arithmetic is also meaningful. Perhaps the most well-known example of this is:
 
@@ -306,7 +306,7 @@ for i, point in enumerate(points):
 plt.savefig('tsne.png')
 ```
 
-![tSNE of State of the Union word embeddings](/guides/assets/tsne.png)
+[![tSNE of State of the Union word embeddings](/guides/assets/tsne.png){:width="100%"}](/guides/assets/tsne.png)
 
 ## Further Reading
 
