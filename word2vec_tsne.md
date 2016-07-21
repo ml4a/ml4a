@@ -69,23 +69,23 @@ First we'll import everything:
 
 ```python
 import numpy as np
-from glob import glob
 from keras.models import Sequential
 from keras.layers.embeddings import Embedding
-from keras.layers import Reshape, Activation, Merge
+from keras.layers import Flatten, Activation, Merge
 from keras.preprocessing.text import Tokenizer, base_filter
 from keras.preprocessing.sequence import skipgrams, make_sampling_table
 ```
 
-Then load in our data. We're actually going to define a generator to load our data in on-demand; this way we'll avoid having all our data sitting around in memory when we don't need it.
+Then load in our data (don't forget to extract it first). We're actually going to define a generator to load our data in on-demand; this way we'll avoid having all our data sitting around in memory when we don't need it.
 
 ```python
+from glob import glob
 text_files = glob('data/sotu/*.txt')
 
 def text_generator():
     for path in text_files:
-            with open(path, 'r') as f:
-                yield f.read()
+        with open(path, 'r') as f:
+            yield f.read()
 ```
 
 Before we go any further, we need to map the words in our corpus to numbers, so that we have a consistent way of referring to them. First we'll fit a tokenizer to the corpus:
@@ -106,6 +106,7 @@ tokenizer.fit_on_texts(text_generator())
 
 # we also want to keep track of the actual vocab size
 # we'll need this later
+# note: we add one because `0` is a reserved index in keras' tokenizer
 vocab_size = len(tokenizer.word_index) + 1
 ```
 
@@ -129,7 +130,7 @@ context_model.add(Embedding(vocab_size, embedding_dim, input_length=1))
 # merge the pivot and context models
 model = Sequential()
 model.add(Merge([pivot_model, context_model], mode='dot', dot_axes=2))
-model.add(Reshape((1,), input_shape=(1,1)))
+model.add(Flatten())
 
 # the task as we've framed it here is
 # just binary classification,
@@ -162,7 +163,7 @@ for i in range(n_epochs):
         if couples:
             pivot, context = zip(*couples)
             pivot = np.array(pivot, dtype='int32')
-            context = np.array(pivot, dtype='int32')
+            context = np.array(context, dtype='int32')
             labels = np.array(labels, dtype='int32')
             loss += model.train_on_batch([pivot, context], labels)
     print('epoch', i)
@@ -195,7 +196,7 @@ An example will make this clearer.
 First, let's write a simple function to retrieve an embedding for a word:
 
 ```python
-def get_embedding(word)
+def get_embedding(word):
     idx = word_index[word]
     # make it 2d
     return embeddings[idx][:,np.newaxis].T
@@ -231,7 +232,7 @@ def get_closest(word):
             return reverse_word_index[idx]
 ```
 
-Now let's give it a try:
+Now let's give it a try (you may get different results):
 
 ```python
 print(get_closest('freedom'))
@@ -277,7 +278,7 @@ This will give us a better sense of the quality of our embeddings: we should see
 `scikit-learn` provides a t-SNE implementation that is very easy to use.
 
 ```python
-from sklearn manifold import TSNE
+from sklearn.manifold import TSNE
 
 # `n_components` is the number of dimensions to reduce to
 tsne = TSNE(n_components=2)
@@ -305,7 +306,7 @@ ax.scatter(xs, ys)
 
 # annotate each point with its word
 for i, point in enumerate(points):
-    ax.annotate(reverse_word_index[i]),
+    ax.annotate(reverse_word_index.get(i),
                 (xs[i], ys[i]),
                 fontsize=8)
 
