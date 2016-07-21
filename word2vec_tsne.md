@@ -9,7 +9,7 @@ In the past, common techniques included methods like one-hot vectors, in which w
 
 For instance, if we have the sentence: "I like dogs", we'd have a 3-dimensional one-hot vector (3-dimensional because there are three words), so the word "I" might be `[1,0,0]`, the word "like" might be `[0,1,0]`, and "dogs" would be `[0,0,1]`.
 
-One-hot vectors worked well enough for some tasks but it's not a particularly rich or meaningful representation of text. The indices of these words are arbitrary (there's no reason `[1,0,0]` had to be "I") and don't describe any relationship between the them.
+One-hot vectors worked well enough for some tasks but it's not a particularly rich or meaningful representation of text. The indices of these words are arbitrary and don't describe any relationship between them.
 
 [_Word embeddings_](http://arxiv.org/pdf/1301.3781.pdf) provide a meaningful representation of text. Word embeddings, called such because they involve embedding a word in some high-dimensional space, that is, they map a word to some vector, much like one-hot vectors. The difference is that word embeddings are learned for a particular task, so they end up being meaningful representations.
 
