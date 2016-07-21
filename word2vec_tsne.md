@@ -43,7 +43,7 @@ We're going to be using the skip-gram task here.
 
 We need a reasonably-sized text corpus to learn from. Here we'll use State of the Union addresses retrieved from [The American Presidency Project](http://www.presidency.ucsb.edu/sou.php). These addresses tend to use similar patterns so we should be able to learn some decent word embeddings. Since the skip-gram task looks at context, texts that use words in a consistent way (i.e. in consistent contexts) we'll be able to learn better.
 
-The texts were preprocessed a bit (mainly removing URL-encoded characters). The texts provided here are the processed versions (nb: this isn't the complete collection of texts but enough to work with here). TODO add link to texts
+[The corpus is available here](/guides/data/sotu.tar.gz). The texts were preprocessed a bit (mainly removing URL-encoded characters). The texts provided here are the processed versions (nb: this isn't the complete collection of texts but enough to work with here).
 
 ## Skip-grams
 
