@@ -302,7 +302,11 @@ fig, ax = plt.subplots(figsize=(40, 20))
 # extract x and y values separately
 xs = points[:,0]
 ys = points[:,1]
-ax.scatter(xs, ys)
+
+# plot the points
+# we don't actually care about the point markers,
+# just want to automatically set the bounds of the plot
+ax.scatter(xs, ys, alpha=0)
 
 # annotate each point with its word
 for i, point in enumerate(points):
