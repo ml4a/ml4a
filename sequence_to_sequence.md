@@ -11,7 +11,7 @@ The general idea of sequence-to-sequence learning with neural networks is that w
 
 This representation is then fed into another network, the decoder (also an RNN), which generates an output sequence for us.
 
-![](/guides/assets/sequence_to_sequence.png){:class="figure", width="280px"}
+![](/guides/assets/sequence_to_sequence.png){:.figure width="280px"}
 
 That's the basic idea, anyway. There are enhancements, most notably the inclusion of an _attention_ mechanism, which doesn't look at the encoder's single final representation but all of its intermediary representations as well. The attention mechanism involves the decoder weighting different parts of these intermediary representations so it "focuses" on certain parts at certain time steps.
 
@@ -168,7 +168,7 @@ Basically what this does is represent each input sequence as a matrix of one-hot
 
 This image is from our [RNN guide](/guides/recurrent_neural_networks), which deals with individual characters, but the idea is the same (just imagine words instead of characters):
 
-![](/guides/assets/rnn_3tensor.png){:class="figure"}
+![](/guides/assets/rnn_3tensor.png){:.figure}
 
 You can think of this as a "stack" of "tiers".
 
