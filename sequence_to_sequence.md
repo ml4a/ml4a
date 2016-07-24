@@ -11,7 +11,7 @@ The general idea of sequence-to-sequence learning with neural networks is that w
 
 This representation is then fed into another network, the decoder (also an RNN), which generates an output sequence for us.
 
-![](/guides/assets/sequence_to_sequence.png){:width="100%"}
+![](/guides/assets/sequence_to_sequence.png){:class="figure", :width="280px"}
 
 That's the basic idea, anyway. There are enhancements, most notably the inclusion of an _attention_ mechanism, which doesn't look at the encoder's single final representation but all of its intermediary representations as well. The attention mechanism involves the decoder weighting different parts of these intermediary representations so it "focuses" on certain parts at certain time steps.
 
@@ -129,7 +129,6 @@ We need to figure out the longest input and output sequences so that we make our
 
 ```python
 # find max length (in tokens) of input and output sentences
-# maybe a better way...
 max_input_length = max(len(seq) for seq in source_tokenizer.texts_to_sequences_generator(en_texts))
 max_output_length = max(len(seq) for seq in target_tokenizer.texts_to_sequences_generator(de_texts))
 ```
@@ -169,7 +168,7 @@ Basically what this does is represent each input sequence as a matrix of one-hot
 
 This image is from our [RNN guide](/guides/recurrent_neural_networks), which deals with individual characters, but the idea is the same (just imagine words instead of characters):
 
-![](/guides/assets/rnn_3tensor.png)
+![](/guides/assets/rnn_3tensor.png){:class="figure"}
 
 You can think of this as a "stack" of "tiers".
 
@@ -188,6 +187,8 @@ def build_target_vecs():
         y[i][[word_idxs, sent]] = True
     return y
 ```
+
+## Defining the model
 
 Now we can start defining the sequence-to-sequence model. Since there's a lot of overlap between the one-hot and embedding versions and the bidirectional and unidirectional variations, we'll write a function that can generate a model of either combination.
 
@@ -247,13 +248,13 @@ The result of this final time distributed dense layer is a "stack" similar to th
 
 Another important difference is that these rows are not one-hot vectors. They are each a probability distribution over the target vocabulary;the softmax layer is responsible for making sure each row sums to 1 like a proper probability distribution should.
 
-Here's a illustration of all of this (note that in this illustration the raw source sequences are passed into the encoder, which is how the embedding variation of this model works; for the one-hot variation there would be an intermediary step where we create the one-hot vectors):
+Here's a illustration depicting this for one input example. Note that in this illustration the raw source sequence of indices are passed into the encoder, which is how the embedding variation of this model works; for the one-hot variation there would be an intermediary step where we create the one-hot vectors.
 
 ![](/guides/assets/sequence_to_sequence_details.png){:width="100%"}
 
-This "stack" (which is technically called a 3-tensor) basically the translated sequence that we want, except we have to do some additional processing to turn it back into text.
+This "stack" (which is technically called a 3-tensor) basically the translated sequence that we want, except we have to do some additional processing to turn it back into text. In the illustration above, the output of the decoder corresponds to one tier in this stack.
 
-While we're on that topic, let's do that now:
+Let's prepare that preprocessing now. Basically, we will take these probabilities and translate them into words, as illustrated in the last two steps above.
 
 ```python
 target_reverse_word_index = {v:k for k,v in target_tokenizer.word_index.items()}
@@ -271,7 +272,9 @@ def decode_outputs(predictions):
 
 To start, we're preparing a reverse word index which will let us put in a number and get back the associated word.
 
-The `decode_outputs` function then just takes that 3-tensor stack of probability distributions (`predictions`). The variable `probs` represents a "tier" in that stack. With `argmax` get the indices of the highest-probability words, then we look up each of those in our reverse word index to get the actual word. We join them up with spaces and voilá, we have our translation.
+The `decode_outputs` function then just takes that 3-tensor stack of probability distributions (`predictions`). The variable `probs` represents a tier in that stack. With `argmax` get the indices of the highest-probability words, then we look up each of those in our reverse word index to get the actual word. We join them up with spaces and voilá, we have our translation.
+
+## Training
 
 But first we have to train the model.
 
@@ -374,14 +377,15 @@ model.fit_generator(generator=generate_batches(batch_size, one_hot=False), sampl
 
 We should see some improvement with the bidirectional variant, but again, a significant amount of training time is still likely needed.
 
+## Final words
+
 When preparing this guide I found that I had to train the network for many, many epochs before achieving decent output. I went with 300 epochs and got to ~82% accuracy.
 
 The dataset here is also relatively small - larger, richer parallel corpora should result in a better translation model.
 
 Here are the results from my comparison trainings (for the sake of time I ran each only for 100 epochs) - interestingly the one-hot models performed better (I expected embeddings would be best):
 
-![](/guides/assets/sequence_training_loss.png)
-![](/guides/assets/sequence_training_acc.png)
+![](/guides/assets/sequence_training.png)
 
 Here are some examples from the best model, after 300 epochs:
 
