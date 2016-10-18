@@ -8,7 +8,7 @@ IMAGE_FILE="$CONTAINER.tar"
 VM="default"
 JUPYTER_PORT="8888"
 
-source start-docker.sh
+#source start-docker.sh
 
 if ! ( docker images | grep "$IMAGE" &>/dev/null ) ; then
 	if [ -e $IMAGE_FILE ]; then
@@ -19,7 +19,7 @@ if ! ( docker images | grep "$IMAGE" &>/dev/null ) ; then
 	fi
 fi
 
-HOST_IP=`docker-machine ip $VM`
+HOST_IP=0.0.0.0 #docker-machine ip $VM
 
 # this might be better as an ssh followed by a deletion on exit
 if ( docker stats --no-stream=true $CONTAINER &>/dev/null ) ; then
@@ -42,19 +42,7 @@ openavailable() {
 	open "http://$1:$2/"
 }
 
-openavailable $HOST_IP $JUPYTER_PORT &
+#openavailable $HOST_IP $JUPYTER_PORT &
 
 DIR=`pwd`
-docker run -ti \
-	--rm=true \
-	--name="$CONTAINER" \
-	--publish="$JUPYTER_PORT:$JUPYTER_PORT" \
-	--env "HOST_IP=$HOST_IP" \
-	--workdir="/root" \
-	--volume="$DIR:/root" \
-	$IMAGE \
-	/bin/bash -c " \
-		sudo ln /dev/null /dev/raw1394 ; \
-		jupyter notebook --ip='*' --no-browser > jupyter.log 2>&1 & \
-		echo 'Jupyter is at http://$HOST_IP:$JUPYTER_PORT/ and writing to jupyter.log' ; \
-		bash"
+docker run --publish $JUPYTER_PORT:$JUPYTER_PORT --volume=$DIR/:$DIR/ -ti genekogan/ml4a-guides /bin/bash -c "ln /dev/null /dev/raw1394 ; jupyter notebook --no-browser --ip=$HOST_IP --port $JUPYTER_PORT"
