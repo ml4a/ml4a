@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+#adapted from https://github.com/kylemcdonald/ml-notebook/blob/master/package.sh
+
 IMAGE="genekogan/ml4a-guides"
 IMAGE_FILE="ml4a-guides.tar"
 
