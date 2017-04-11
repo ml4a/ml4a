@@ -5,7 +5,7 @@
 CONTAINER="ml4a-guides"
 IMAGE="genekogan/$CONTAINER"
 IMAGE_FILE="$CONTAINER.tar"
-JUPYTER_PORT="8888"
+JUPYTER_PORT=${JUPYTER_PORT:-8888}
 
 if ! ( docker images | grep "$IMAGE" &>/dev/null ) ; then
 	if [ -e $IMAGE_FILE ]; then
