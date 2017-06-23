@@ -2,8 +2,8 @@
 
 #adapted from https://github.com/kylemcdonald/ml-notebook/blob/master/package.sh
 
-IMAGE="genekogan/ml4a-guides"
-IMAGE_FILE="ml4a-guides.tar"
+IMAGE="ml4a"
+IMAGE_FILE="ml4a.tar"
 
 if [ ! -e $IMAGE_FILE ] ; then
 	echo "Saving $IMAGE to $IMAGE_FILE"

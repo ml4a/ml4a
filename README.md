@@ -9,7 +9,7 @@ The homepage for these is [here](http://ml4a.github.io/guides), which contains a
 You can easily run these guides using Docker. With docker installed, run the following from inside the repo:
 
 ```bash
-docker build -t genekogan/ml4a-guides .
+docker build . -t ml4a
 ```
 
 Once the container has successfully built, you can launch it with:
@@ -25,4 +25,5 @@ If that port is already occupied, you may recieve an error from the `run.sh` scr
 ```bash
 JUPYTER_PORT=1337 ./run.sh # visit at http://localhost:1337 instead
 ```
+
 

@@ -2,10 +2,11 @@
 
 #adapted from https://github.com/kylemcdonald/ml-notebook/blob/master/run.sh
 
-CONTAINER="ml4a-guides"
-IMAGE="genekogan/$CONTAINER"
-IMAGE_FILE="$CONTAINER.tar"
+IMAGE="ml4a"
+IMAGE_FILE="$IMAGE.tar"
 JUPYTER_PORT=${JUPYTER_PORT:-8888}
+HOST_IP=0.0.0.0
+DIR=`pwd`
 
 if ! ( docker images | grep "$IMAGE" &>/dev/null ) ; then
 	if [ -e $IMAGE_FILE ]; then
@@ -16,6 +17,4 @@ if ! ( docker images | grep "$IMAGE" &>/dev/null ) ; then
 	fi
 fi
 
-HOST_IP=0.0.0.0
-DIR=`pwd`
-docker run --publish $JUPYTER_PORT:$JUPYTER_PORT --volume=$DIR/:$DIR/ -ti genekogan/ml4a-guides /bin/bash -c "ln /dev/null /dev/raw1394 ; jupyter notebook --no-browser --ip=$HOST_IP --port $JUPYTER_PORT"
+docker run --publish $JUPYTER_PORT:$JUPYTER_PORT --volume=$DIR/:$DIR/ -ti $IMAGE /bin/bash -c "ln /dev/null /dev/raw1394 ; jupyter notebook --allow-root --no-browser --ip=$HOST_IP --port=$JUPYTER_PORT --notebook-dir=$DIR"
