@@ -4,9 +4,18 @@ These guides accompany the chapters of [ml4a.github.io](http://ml4a.github.io), 
 
 The homepage for these is [here](http://ml4a.github.io/guides), which contains an overview of the included guides and tutorials, as well as some additional (in-progress) materials to help you get setup.
 
+## Getting the data
+
+Some of the notebooks use publicly available datasets. In each case, you are free to substitute it with a dataset of your choice. If you want to just go through the notebooks and use the default datasets, each one has information about where to download it from. Or, you may simply download all datasets automatically in the default location by going into the `data` folder and running the script `download.sh`, i.e.
+
+    cd data
+    ./download.sh
+
+If you are on Mac or Windows, you may have to install unrar to run the install script.
+
 ## Running the container
 
-You can easily run these guides using Docker. With docker installed, run the following from inside the repo:
+You can easily run these guides using [Docker](https://www.docker.com/). With Docker installed, run the following from inside the repo:
 
 ```bash
 docker build . -t ml4a

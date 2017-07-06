@@ -9,3 +9,8 @@ notebooks/embeddings.dat
 notebooks/game_weights.h5
 ml4a-guides.tar
 assets/neural-painter-frames
+
+# data files
+data/Reuters21578-Apte-90Cat/
+data/lfw_funneled/
+data/Vintage Drum Machines/
