@@ -11,6 +11,7 @@ ml4a-guides.tar
 assets/neural-painter-frames
 
 # data files
+data/101_ObjectCategories/
 data/Reuters21578-Apte-90Cat/
 data/lfw_funneled/
 data/Vintage Drum Machines/
