@@ -9,8 +9,6 @@ RUN pip install --ignore-installed --upgrade https://storage.googleapis.com/tens
 
 RUN conda install -y scikit-learn
 
-RUN conda install -c anaconda -y pillow=3.4.1
-
 RUN conda install -c conda-forge librosa
 
 RUN conda install -c mutirri -y blessings=1.6
@@ -19,3 +17,4 @@ RUN conda install -c conda-forge tqdm=4.14.0
 
 RUN pip install python-igraph
 
+RUN conda install -y pillow=3.4.1
