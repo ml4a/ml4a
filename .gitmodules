@@ -1,0 +1,3 @@
+[submodule "tools/BEGAN-tensorflow"]
+	path = tools/BEGAN-tensorflow
+	url = https://github.com/carpedm20/BEGAN-tensorflow
