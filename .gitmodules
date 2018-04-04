@@ -1,3 +1,6 @@
 [submodule "tools/BEGAN-tensorflow"]
 	path = tools/BEGAN-tensorflow
 	url = https://github.com/carpedm20/BEGAN-tensorflow
+[submodule "tools/DCGAN-tensorflow"]
+	path = tools/DCGAN-tensorflow
+	url = https://github.com/carpedm20/DCGAN-tensorflow
