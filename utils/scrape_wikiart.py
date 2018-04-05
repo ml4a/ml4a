@@ -30,6 +30,7 @@ num_images = 0
 
 def get_painting_list(count, genre):
 	try:
+		time.sleep(0.5)
 		url = "https://www.wikiart.org/en/paintings-by-genre/%s/%d"%(genre, count)
 		soup =  BeautifulSoup(urllib.request.urlopen(url), "lxml")
 		complete = 0
@@ -53,6 +54,7 @@ def downloader(link, genre, output_dir):
     item, file = link
     filepath = file.split('/')
     savepath = '%s/%s/%d_%s' % (output_dir, genre, item, filepath[-1])
+    #savepath = '%s/%s/%s' % (output_dir, genre, filepath[-1])    
     try:
         time.sleep(0.1)  # try not to get a 403
         urllib.request.urlretrieve(file, savepath)

@@ -4,3 +4,6 @@
 [submodule "tools/DCGAN-tensorflow"]
 	path = tools/DCGAN-tensorflow
 	url = https://github.com/carpedm20/DCGAN-tensorflow
+[submodule "tools/art-DCGAN"]
+	path = tools/art-DCGAN
+	url = https://github.com/robbiebarrat/art-DCGAN
