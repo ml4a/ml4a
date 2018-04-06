@@ -53,8 +53,8 @@ def downloader(link, genre, output_dir):
     global num_downloaded, num_images
     item, file = link
     filepath = file.split('/')
-    savepath = '%s/%s/%d_%s' % (output_dir, genre, item, filepath[-1])
-    #savepath = '%s/%s/%s' % (output_dir, genre, filepath[-1])    
+    #savepath = '%s/%s/%d_%s' % (output_dir, genre, item, filepath[-1])
+    savepath = '%s/%s/%s' % (output_dir, genre, filepath[-1])    
     try:
         time.sleep(0.1)  # try not to get a 403
         urllib.request.urlretrieve(file, savepath)
@@ -76,6 +76,7 @@ def main(genre, num_pages, output_dir):
 
     pages = [page for page in wikiart_pages if page ]
     items = [item for sublist in pages for item in sublist]
+    items = list(set(items))  # get rid of duplicates
     num_images = len(items)
     
     if not os.path.isdir('%s/%s'%(output_dir, genre)):
