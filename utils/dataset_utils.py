@@ -2,6 +2,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
+from PIL import Image
 # args
 # input_dir source directory of images
 # output_dir 
@@ -18,12 +19,16 @@ from os.path import isfile, join
 
 
 
-mypath = "~/ml4a/tools/BEGAN-tensorflow/data/landscapes"
-mypath2 = "~/ml4a/tools/BEGAN-tensorflow/data/landscapes2"
+mypath = "../datasets/landscape"
+mypath2 = "../datasets/landscape_128_128"
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) ]
 for o in onlyfiles:
-	im = Image.open(join(mypath,o)).convert("RGB")
-	im = im.resize((128, 128), Image.BICUBIC)
-	print(im)
-	im.save(join(mypath2,o))
+	try:
+		im = Image.open(join(mypath,o)).convert("RGB")
+		im = im.resize((128,128), Image.BICUBIC)
+		print(im)
+		im.save(join(mypath2,o))
+	except:
+		print('error...')
+		
