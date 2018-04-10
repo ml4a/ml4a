@@ -10,3 +10,6 @@
 [submodule "tools/darknet"]
 	path = tools/darknet
 	url = https://github.com/pjreddie/darknet
+[submodule "tools/pytorch-CycleGAN-and-pix2pix"]
+	path = tools/pytorch-CycleGAN-and-pix2pix
+	url = https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/
