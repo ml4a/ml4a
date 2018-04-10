@@ -1,9 +1,6 @@
 [submodule "tools/BEGAN-tensorflow"]
 	path = tools/BEGAN-tensorflow
 	url = https://github.com/carpedm20/BEGAN-tensorflow
-[submodule "tools/DCGAN-tensorflow"]
-	path = tools/DCGAN-tensorflow
-	url = https://github.com/carpedm20/DCGAN-tensorflow
 [submodule "tools/art-DCGAN"]
 	path = tools/art-DCGAN
 	url = https://github.com/robbiebarrat/art-DCGAN
@@ -22,3 +19,6 @@
 [submodule "tools/neural-style"]
 	path = tools/neural-style
 	url = https://github.com/jcjohnson/neural-style
+[submodule "tools/DCGAN-tensorflow"]
+	path = tools/DCGAN-tensorflow
+	url = https://github.com/genekogan/DCGAN-tensorflow
