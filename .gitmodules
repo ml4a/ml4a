@@ -16,3 +16,6 @@
 [submodule "tools/pix2pix-tensorflow"]
 	path = tools/pix2pix-tensorflow
 	url = https://github.com/affinelayer/pix2pix-tensorflow.git
+[submodule "tools/char-rnn-tensorflow"]
+	path = tools/char-rnn-tensorflow
+	url = https://github.com/sherjilozair/char-rnn-tensorflow

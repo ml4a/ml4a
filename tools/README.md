@@ -27,3 +27,11 @@ Testing example:
     net=checkpoints/experiment4_800_net_G.t7 name=experiment imsize=1 display=0 th generate.lua 
 
 
+### darknet
+
+cd data
+mkdir sherlock
+cd sherlock
+wget https://sherlock-holm.es/stories/plain-text/cnus.txt
+mv cnus.txt input.txt
+cd ../

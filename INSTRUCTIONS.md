@@ -34,3 +34,15 @@ python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix
 python tools/download-dataset.py facades
 python pix2pix.py  --mode train  --output_dir facades_train  --max_epochs 10 --input_dir facades/train --which_direction BtoA
 python pix2pix.py  --mode test --output_dir facades_test --input_dir facades/val --checkpoint facades_train
+
+
+### char-rnn-tensorflow
+cd data
+mkdir sherlock
+cd sherlock
+wget https://sherlock-holm.es/stories/plain-text/cnus.txt
+mv cnus.txt input.txt
+python train.py --data_dir=./data/sherlock/
+python sample.py --save_dir=./save/ -n 200 --prime "hello"
+
+
