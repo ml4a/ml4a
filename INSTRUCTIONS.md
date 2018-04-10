@@ -46,3 +46,9 @@ python train.py --data_dir=./data/sherlock/
 python sample.py --save_dir=./save/ -n 200 --prime "hello"
 
 
+### neural-style
+
+sh models/download_models.sh
+th neural_style.lua -style_image examples/inputs/picasso_selfport1907.jpg -content_image examples/inputs/brad_pitt.jpg -output_image profile.png -num_iterations 1000 -image_size 512 
+
+

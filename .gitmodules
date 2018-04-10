@@ -19,3 +19,6 @@
 [submodule "tools/char-rnn-tensorflow"]
 	path = tools/char-rnn-tensorflow
 	url = https://github.com/sherjilozair/char-rnn-tensorflow
+[submodule "tools/neural-style"]
+	path = tools/neural-style
+	url = https://github.com/jcjohnson/neural-style
