@@ -7,3 +7,6 @@
 [submodule "tools/art-DCGAN"]
 	path = tools/art-DCGAN
 	url = https://github.com/robbiebarrat/art-DCGAN
+[submodule "tools/darknet"]
+	path = tools/darknet
+	url = https://github.com/pjreddie/darknet
