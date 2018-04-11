@@ -22,3 +22,12 @@
 [submodule "tools/DCGAN-tensorflow"]
 	path = tools/DCGAN-tensorflow
 	url = https://github.com/genekogan/DCGAN-tensorflow
+[submodule "tools/tensorflow-wavenet"]
+	path = tools/tensorflow-wavenet
+	url = https://github.com/ibab/tensorflow-wavenet
+[submodule "tools/densecap"]
+	path = tools/densecap
+	url = https://github.com/jcjohnson/densecap.git
+[submodule "tools/neural-enhance"]
+	path = tools/neural-enhance
+	url = https://github.com/alexjc/neural-enhance.git
