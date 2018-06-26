@@ -2,6 +2,7 @@
 
 import time
 import os
+import re
 import argparse
 import urllib
 import itertools
@@ -28,26 +29,20 @@ parser.add_argument("--output_dir", help="where to put output files")
 num_downloaded = 0
 num_images = 0
 
+
+
 def get_painting_list(count, genre):
-	try:
-		time.sleep(0.5)
-		url = "https://www.wikiart.org/en/paintings-by-genre/%s/%d"%(genre, count)
-		soup =  BeautifulSoup(urllib.request.urlopen(url), "lxml")
-		complete = 0
-		url_list = []
-		for item in str(soup.findAll()).split():
-			if item == "data" or complete == 1:
-				complete = 1
-				if "}];" in item:
-					break
-				if "https" in item:
-					link = "http" + item[6:-2]
-					url_list.append(link)
-					count += 1
-		return url_list
-	except Exception as e:
-		print('failed to scrape %s'%url, e)
-		
+    try:
+        time.sleep(0.5)
+        url = "https://www.wikiart.org/en/paintings-by-genre/%s/%d"%(genre, count)
+        soup = BeautifulSoup(urllib.request.urlopen(url), "lxml")
+        regex = r'https?://uploads[0-9]+[^/\s]+/\S+\.jpg'
+        url_list = re.findall(regex, str(soup.html()))
+        count += len(url_list)
+        return url_list
+    except Exception as e:
+        print('failed to scrape %s'%url, e)
+
 
 def downloader(link, genre, output_dir):
     global num_downloaded, num_images
