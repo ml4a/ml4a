@@ -21,8 +21,17 @@ genre_list = ['portrait', 'landscape', 'genre-painting', 'abstract', 'religious-
               'bird-and-flower-painting', 'performance', 'bijinga', 'pastorale', 'trompe-loeil', 
               'vanitas', 'shan-shui', 'tapestry', 'mosaic', 'quadratura', 'panorama', 'architecture']
 
+style_list = ['impressionism', 'realism', 'romanticism', 'expressionism', 
+            'post-impressionism', 'surrealism', 'art-nouveau', 'baroque', 
+            'symbolism', 'abstract-expressionism', 'na-ve-art-primitivism', 
+            'neoclassicism', 'cubism', 'rococo', 'northern-renaissance', 
+            'pop-art', 'minimalism', 'abstract-art', 'art-informel', 'ukiyo-e', 
+            'conceptual-art', 'color-field-painting', 'high-renaissance']
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--genre", help="which genre to scrape", choices=genre_list)
+parser.add_argument("--genre", help="which genre to scrape", choices=genre_list, default=None)
+parser.add_argument("--style", help="which style to scrape", choices=style_list, default=None)
 parser.add_argument("--num_pages", type=int, help="number of pages to scrape (leave blank to download all of them)", default=1000)
 parser.add_argument("--output_dir", help="where to put output files")
 
@@ -31,10 +40,11 @@ num_images = 0
 
 
 
-def get_painting_list(count, genre):
+
+def get_painting_list(count, typep, searchword):
     try:
         time.sleep(0.5)
-        url = "https://www.wikiart.org/en/paintings-by-genre/%s/%d"%(genre, count)
+        url = "https://www.wikiart.org/en/paintings-by-%s/%s/%d"%(typep, searchword, count)
         soup = BeautifulSoup(urllib.request.urlopen(url), "lxml")
         regex = r'https?://uploads[0-9]+[^/\s]+/\S+\.jpg'
         url_list = re.findall(regex, str(soup.html()))
@@ -57,15 +67,15 @@ def downloader(link, genre, output_dir):
         if num_downloaded % 100 == 0:
             print('downloaded number %d / %d...' % (num_downloaded, num_images))
     except Exception as e:
-        print("failed downloading " + str(file), e)	
+        print("failed downloading " + str(file), e) 
 
 
-def main(genre, num_pages, output_dir):
+def main(typep, searchword, num_pages, output_dir):
     global num_images
     print('gathering links to images... this may take a few minutes')
     threadpool = Pool(multiprocessing.cpu_count()-1)
     numbers = list(range(1, num_pages))
-    wikiart_pages = threadpool.starmap(get_painting_list, zip(numbers, itertools.repeat(genre))) 
+    wikiart_pages = threadpool.starmap(get_painting_list, zip(numbers, itertools.repeat(typep), itertools.repeat(searchword))) 
     threadpool.close()
     threadpool.join()
 
@@ -74,20 +84,20 @@ def main(genre, num_pages, output_dir):
     items = list(set(items))  # get rid of duplicates
     num_images = len(items)
     
-    if not os.path.isdir('%s/%s'%(output_dir, genre)):
-        os.mkdir('%s/%s'%(output_dir, genre))
+    if not os.path.isdir('%s/%s'%(output_dir, searchword)):
+        os.mkdir('%s/%s'%(output_dir, searchword))
     
     print('attempting to download %d images'%num_images)
     threadpool = Pool(multiprocessing.cpu_count()-1)
-    threadpool.starmap(downloader, zip(enumerate(items), itertools.repeat(genre), itertools.repeat(output_dir)))
-    threadpool.close	
+    threadpool.starmap(downloader, zip(enumerate(items), itertools.repeat(searchword), itertools.repeat(output_dir)))
+    threadpool.close    
     threadpool.close()
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    genre = args.genre
+    searchword, typep = (args.genre, 'genre') if args.genre is not None else (args.style, 'style')
     num_pages = args.num_pages
     output_dir = args.output_dir
-    main(genre, num_pages, output_dir)
+    main(typep, searchword, num_pages, output_dir)
 

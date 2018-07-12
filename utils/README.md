@@ -1,5 +1,4 @@
 
-
 ### Scraping WikiArt (thanks to [@robbiebarrat](http://github.com/robbiebarrat/))
 
 See https://www.wikiart.org/en/paintings-by-genre/ for list of genres. List follows:
@@ -8,13 +7,20 @@ See https://www.wikiart.org/en/paintings-by-genre/ for list of genres. List foll
 
 **<1000 images**: interior, literary-painting, poster, caricature, battle-painting, wildlife-painting, cloudscape, miniature, veduta, yakusha-e, calligraphy, graffiti, tessellation, capriccio, advertisement, bird-and-flower-painting, performance, bijinga, pastorale, trompe-loeil, vanitas, shan-shui, tapestry, mosaic, quadratura, panorama, architecture
 
+
+See https://www.wikiart.org/en/paintings-by-styles/ for list of genres. List follows:
+
+impressionism, realism, romanticism, expressionism, post-impressionism, surrealism, art-nouveau, baroque, symbolism, abstract-expressionism, na-ve-art-primitivism, neoclassicism, cubism, rococo, northern-renaissance, pop-art, minimalism, abstract-art, art-informel, ukiyo-e, conceptual-art, color-field-painting, high-renaissance
+
+
 Example:
 
     python scrape_wikiart.py --genre landscape --num_pages 3 --output_dir ../datasets
+    python scrape_wikiart.py --style impressionism --num_pages 3 --output_dir ../datasets
     
     
 ### Crop and resize folder of images
 
-The following example will take all images in `../datasets/landscape`, take a random square crop, where the side length is half the size of the original (`frac` parameter), resize to 128x128, and place in new directory `../datasets/landscape_small`.
+documentation needed... see argparse.
 
-    python dataset_utils.py --input_dir ../datasets/landscape --output_dir ../datasets/landscape_small --frac 0.5 --w 128 --h 128
+    python dataset_utils.py 
