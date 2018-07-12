@@ -27,24 +27,24 @@ parser = argparse.ArgumentParser()
 # input, output
 parser.add_argument("--input_dir", help="where to get input images")
 parser.add_argument("--output_dir", help="where to put output images")
-parser.add_argument("--num_images", type=int, help="number of images to take", default=1)
+parser.add_argument("--num_images", type=int, help="number of images to take (omit to use all)", default=None)
 
 # processing action
-parser.add_argument("--action", type=str, help="which actions {quantize,trace,segment}", required=True, choices=['quantize', 'trace', 'segment'], default="")
+parser.add_argument("--action", type=str, help="which actions {none,quantize,trace,segment}", required=True, choices=['none', 'quantize', 'trace', 'segment'], default="")
 
 # augmentation
-parser.add_argument("--augment", type=bool, default=False, help="to augment or not augment")
+parser.add_argument("--augment", type=int, default=0, help="to augment or not augment")
 parser.add_argument("--num_augment", type=int, help="number of regions to output", default=1)
 parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=0.6667)
 parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.075)
+parser.add_argument("--max_ang", type=float, help="max rotation angle (degrees)", default=0)
 parser.add_argument("--w", type=int, help="output image width", default=64)
 parser.add_argument("--h", type=int, help="output image height", default=64)
-parser.add_argument("--max_ang", type=float, help="max rotation angle (radians)", default=0)
 
 # augmentation
-parser.add_argument("--split", type=bool, default=False, help="to split into training/test")
+parser.add_argument("--split", type=int, default=0, help="to split into training/test")
 parser.add_argument("--pct_train", type=float, default=0.9, help="percentage that goes to training set")
-parser.add_argument("--combine", type=bool, default=False, help="concatenate input and output images (like for training pix2pix)")
+parser.add_argument("--combine", type=int, default=0, help="concatenate input and output images (like for training pix2pix)")
 
 
 
@@ -151,17 +151,28 @@ def trace(img):
     return img
     
 
+def upsample(img, w2, h2):
+    h1, w1 = img.height, img.width
+    r = max(float(w2)/w1, float(h2)/h1)
+    img = img.resize((int(r*w1), int(r*h1)), resample=Image.BICUBIC)
+    print("img sized now",img.width, img.height)
+    return img
 
 def crop_rot_resize(img, frac, w2, h2, ang):
+    if img.height<h2 or img.width<w2:
+        img = upsample(img, w2, h2)
+
     img = img.rotate(ang, resample=Image.BICUBIC, expand=False)
     ar = float(w2 / h2)
     h1, w1 = img.height, img.width
+
     if float(w1) / h1 > ar:
         h1_crop = max(h2, h1 * frac)
         w1_crop = h1_crop * ar
     else:
         w1_crop = max(w2, w1 * frac)
         h1_crop = w1_crop / ar
+
     #xr, yr = 0.275 + 0.45*random(), 0.275 + 0.45*random()
     xr, yr = random(), random()
     x_crop, y_crop = (w1 - w1_crop - 1) * xr, (h1 - h1_crop - 1) * yr
@@ -184,7 +195,7 @@ def augmentation(img, args):
     
 # main program    
 def main(args):
-    action, num_images, augment, split, combine = args.action, args.num_images, args.augment, args.split, args.combine
+    action, num_images, augment, split, combine = args.action, args.num_images, args.augment==1, args.split==1, args.combine==1
 
     # make output dir(s)
     input_dir, output_dir = args.input_dir, args.output_dir
@@ -197,7 +208,7 @@ def main(args):
     
     # cycle through input images
     images = [f for f in listdir(input_dir) if isfile(join(input_dir, f)) ]
-    sort_order = sorted(sample(xrange(len(images)), min(num_images, len(images))))
+    sort_order = sorted(sample(xrange(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
     images = [images[i] for i in sort_order]
 
     # if to split into training/test flders
@@ -210,16 +221,16 @@ def main(args):
         #try:
         # open image
         img0 = Image.open(join(input_dir, img_path)).convert("RGB")
-    
+        print('ing siz',img0.width, img0.height)
         imgs0 = []
         if augment:
             imgs0 = augmentation(img0, args)
-        else:
+        else:   
             imgs0 = [img0]
 
         imgs = []
         for img0 in tqdm(imgs0):
-    
+            
             if action == 'segment':
                 img = pil2cv(img0)
                 img = segment(img)
@@ -230,16 +241,22 @@ def main(args):
 
             elif action == 'trace':
                 img = trace(img0)
-                
+            
+            elif action == 'none':
+                img = img0
+
             imgs.append(img)
 
         for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
+            out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
             if combine:                
                 img_f = Image.new('RGB', (args.w * 2, args.h))     
-                img_f.paste(img0, (0, 0))
-                img_f.paste(img1, (args.w, 0))
-                out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
+                img_f.paste(img0.convert('RGB'), (0, 0))
+                img_f.paste(img1.convert('RGB'), (args.w, 0))
                 img_f.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
+            else:
+                img1 = img1.convert('RGB')
+                img1.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
 
 
 if __name__ == '__main__':

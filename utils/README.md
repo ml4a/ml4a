@@ -19,8 +19,10 @@ Example:
     python scrape_wikiart.py --style impressionism --num_pages 3 --output_dir ../datasets
     
     
-### Crop and resize folder of images
+### Dataset utils
 
-documentation needed... see argparse.
+Example:
 
-    python dataset_utils.py 
+This script will take `--num_images` images from `--input_dir` (all if omitted), make `--num_augment` copies of it rotated by random angle up to max `--max_ang`, random crop of  `--frac +/- --frac_vary` %, resized to `--w` x `--h`, saved to `--output_dir`.
+
+    python3 dataset_utils.py --input_dir ../datasets/portrait/ --output_dir ../datasets/portrait_1024 --augment 1 --num_augment 4 --action none --frac 0.75 --frac_vary 0.075 --max_ang 4 --w 1024 --h 1024 --split 0 --pct_train 1.0 --combine 0 --num_images 10
