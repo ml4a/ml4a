@@ -208,7 +208,7 @@ def main(args):
     
     # cycle through input images
     images = [f for f in listdir(input_dir) if isfile(join(input_dir, f)) ]
-    sort_order = sorted(sample(xrange(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
+    sort_order = sorted(sample(range(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
     images = [images[i] for i in sort_order]
 
     # if to split into training/test flders
@@ -219,7 +219,8 @@ def main(args):
     
     for img_idx, img_path in enumerate(tqdm(images)):
         try:
-            print('open %s' % join(input_dir, img_path))
+            print('open %d/%d : %s' % (img_idx, len(images), join(input_dir, img_path)))
+            ext = img_path.split('.')[-1]
             img0 = Image.open(join(input_dir, img_path)).convert("RGB")
     
             imgs0 = []
@@ -253,10 +254,10 @@ def main(args):
                     img_f = Image.new('RGB', (args.w * 2, args.h))     
                     img_f.paste(img0.convert('RGB'), (0, 0))
                     img_f.paste(img1.convert('RGB'), (args.w, 0))
-                    img_f.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
+                    img_f.save(join(out_dir, img_path[0:-5]+"_%d.%s"%(i, ext)))
                 else:
                     img1 = img1.convert('RGB')
-                    img1.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
+                    img1.save(join(out_dir, img_path[0:-5]+"_%d.%s"%(i, ext)))
 
         except:
             print(" -> something went wrong")
