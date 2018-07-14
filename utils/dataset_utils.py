@@ -178,6 +178,7 @@ def crop_rot_resize(img, frac, w2, h2, ang):
     h1_crop, w1_crop, y_crop, x_crop = int(h1_crop), int(w1_crop), int(y_crop), int(x_crop)
     img_crop = img.crop((x_crop, y_crop, x_crop+w1_crop, y_crop+h1_crop))
     img_resize = img_crop.resize((w2, h2))
+    
     return img_resize
 
 
@@ -217,45 +218,48 @@ def main(args):
         training[n_train:] = [0] * (len(images) - n_train)
     
     for img_idx, img_path in enumerate(tqdm(images)):
-        #try:
-        # open image
-        img0 = Image.open(join(input_dir, img_path)).convert("RGB")
+        try:
+            print('open %s' % join(input_dir, img_path))
+            img0 = Image.open(join(input_dir, img_path)).convert("RGB")
+    
+            imgs0 = []
+            if augment:
+                imgs0 = augmentation(img0, args)
+            else:   
+                imgs0 = [img0]
         
-        imgs0 = []
-        if augment:
-            imgs0 = augmentation(img0, args)
-        else:   
-            imgs0 = [img0]
+            imgs = []
+            for img0 in tqdm(imgs0):
+		
+                if action == 'segment':
+                    img = pil2cv(img0)
+                    img = segment(img)
+    
+                elif action == 'colorize':
+                    colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
+                    img = quantiz_colors(img0)
 
-        imgs = []
-        for img0 in tqdm(imgs0):
+                elif action == 'trace':
+                    img = trace(img0)
             
-            if action == 'segment':
-                img = pil2cv(img0)
-                img = segment(img)
+                elif action == 'none':
+                    img = img0
 
-            elif action == 'colorize':
-                colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
-                img = quantiz_colors(img0)
+                imgs.append(img)
 
-            elif action == 'trace':
-                img = trace(img0)
-            
-            elif action == 'none':
-                img = img0
+            for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
+                out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
+                if combine:                
+                    img_f = Image.new('RGB', (args.w * 2, args.h))     
+                    img_f.paste(img0.convert('RGB'), (0, 0))
+                    img_f.paste(img1.convert('RGB'), (args.w, 0))
+                    img_f.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
+                else:
+                    img1 = img1.convert('RGB')
+                    img1.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
 
-            imgs.append(img)
-
-        for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
-            out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
-            if combine:                
-                img_f = Image.new('RGB', (args.w * 2, args.h))     
-                img_f.paste(img0.convert('RGB'), (0, 0))
-                img_f.paste(img1.convert('RGB'), (args.w, 0))
-                img_f.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
-            else:
-                img1 = img1.convert('RGB')
-                img1.save(join(out_dir, img_path[0:-5]+"_%d.png"%i))
+        except:
+            print(" -> something went wrong")
 
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@
 import time
 import os
 import re
+import random
 import argparse
 import urllib
 import itertools
@@ -26,8 +27,13 @@ style_list = ['impressionism', 'realism', 'romanticism', 'expressionism',
             'symbolism', 'abstract-expressionism', 'na-ve-art-primitivism', 
             'neoclassicism', 'cubism', 'rococo', 'northern-renaissance', 
             'pop-art', 'minimalism', 'abstract-art', 'art-informel', 'ukiyo-e', 
-            'conceptual-art', 'color-field-painting', 'high-renaissance']
-
+            'conceptual-art', 'color-field-painting', 'high-renaissance',
+            'mannerism-late-renaissance', 'neo-expressionism', 'early-renaissance', 
+            'magic-realism', 'academicism', 'op-art', 'lyrical-abstraction', 
+            'contemporary-realism', 'art-deco', 'fauvism', 'concretism', 
+            'ink-and-wash-painting', 'post-minimalism', 'social-realism', 
+            'hard-edge-painting', 'neo-romanticism', 'tachisme', 'pointillism', 
+            'socialist-realism', 'neo-pop-art']
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--genre", help="which genre to scrape", choices=genre_list, default=None)
@@ -43,7 +49,7 @@ num_images = 0
 
 def get_painting_list(count, typep, searchword):
     try:
-        time.sleep(0.5)
+        time.sleep(3.0*random.random())  # random sleep to decrease concurrence of requests
         url = "https://www.wikiart.org/en/paintings-by-%s/%s/%d"%(typep, searchword, count)
         soup = BeautifulSoup(urllib.request.urlopen(url), "lxml")
         regex = r'https?://uploads[0-9]+[^/\s]+/\S+\.jpg'
@@ -61,7 +67,7 @@ def downloader(link, genre, output_dir):
     #savepath = '%s/%s/%d_%s' % (output_dir, genre, item, filepath[-1])
     savepath = '%s/%s/%s' % (output_dir, genre, filepath[-1])    
     try:
-        time.sleep(0.1)  # try not to get a 403
+        time.sleep(0.2)  # try not to get a 403
         urllib.request.urlretrieve(file, savepath)
         num_downloaded += 1
         if num_downloaded % 100 == 0:
