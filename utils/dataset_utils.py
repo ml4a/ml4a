@@ -38,6 +38,7 @@ parser.add_argument("--num_augment", type=int, help="number of regions to output
 parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=0.6667)
 parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.075)
 parser.add_argument("--max_ang", type=float, help="max rotation angle (degrees)", default=0)
+parser.add_argument("--max_stretch", type=float, help="maximum stretching factor (0=none)", default=0)
 parser.add_argument("--w", type=int, help="output image width", default=64)
 parser.add_argument("--h", type=int, help="output image height", default=64)
 parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=256)
@@ -158,11 +159,19 @@ def upsample(img, w2, h2):
     img = img.resize((int(r*w1), int(r*h1)), resample=Image.BICUBIC)
     return img
 
-def crop_rot_resize(img, frac, w2, h2, ang):
+def crop_rot_resize(img, frac, w2, h2, ang, stretch):
     if img.height<h2 or img.width<w2:
         img = upsample(img, w2, h2)
-
-    img = img.rotate(ang, resample=Image.BICUBIC, expand=False)
+    
+    if stretch != 0:
+        v = random() < 0.5
+        h = 1.0 if not v else (1.0 + stretch)
+        w = 1.0 if v else (1.0 + stretch)
+        img = img.resize((int(img.width * w), int(img.height * h)), resample=Image.BICUBIC)
+        
+    if ang > 0:
+        img = img.rotate(ang, resample=Image.BICUBIC, expand=False)
+   
     ar = float(w2 / h2)
     h1, w1 = img.height, img.width
 
@@ -185,12 +194,13 @@ def crop_rot_resize(img, frac, w2, h2, ang):
 
 # augmentation
 def augmentation(img, args):
-    num, w2, h2, frac, frac_vary, max_ang = args.num_augment, args.w, args.h, args.frac, args.frac_vary, args.max_ang
+    num, w2, h2, frac, frac_vary, max_ang, max_stretch = args.num_augment, args.w, args.h, args.frac, args.frac_vary, args.max_ang, args.max_stretch
     aug_imgs = []
     for n in range(num):
-        ang = max_ang * (-1 + 2 * random())
-        frac_amt = frac + frac_vary * (-1 + 2 * random())
-        aug_img = crop_rot_resize(img, frac_amt, w2, h2, ang)
+        ang = max_ang * (-1.0 + 2.0 * random())
+        frac_amt = frac + frac_vary * (-1.0 + 2.0 * random())
+        stretch = max_stretch * (-1.0 + 2.0 * random())
+        aug_img = crop_rot_resize(img, frac_amt, w2, h2, ang, stretch)
         aug_imgs.append(aug_img)
     return aug_imgs
     
