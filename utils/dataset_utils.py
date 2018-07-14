@@ -155,7 +155,6 @@ def upsample(img, w2, h2):
     h1, w1 = img.height, img.width
     r = max(float(w2)/w1, float(h2)/h1)
     img = img.resize((int(r*w1), int(r*h1)), resample=Image.BICUBIC)
-    print("img sized now",img.width, img.height)
     return img
 
 def crop_rot_resize(img, frac, w2, h2, ang):
@@ -221,7 +220,7 @@ def main(args):
         #try:
         # open image
         img0 = Image.open(join(input_dir, img_path)).convert("RGB")
-        print('ing siz',img0.width, img0.height)
+        
         imgs0 = []
         if augment:
             imgs0 = augmentation(img0, args)
