@@ -26,8 +26,13 @@ style_list = ['impressionism', 'realism', 'romanticism', 'expressionism',
             'symbolism', 'abstract-expressionism', 'na-ve-art-primitivism', 
             'neoclassicism', 'cubism', 'rococo', 'northern-renaissance', 
             'pop-art', 'minimalism', 'abstract-art', 'art-informel', 'ukiyo-e', 
-            'conceptual-art', 'color-field-painting', 'high-renaissance']
-
+            'conceptual-art', 'color-field-painting', 'high-renaissance',
+            'mannerism-late-renaissance', 'neo-expressionism', 'early-renaissance', 
+            'magic-realism', 'academicism', 'op-art', 'lyrical-abstraction', 
+            'contemporary-realism', 'art-deco', 'fauvism', 'concretism', 
+            'ink-and-wash-painting', 'post-minimalism', 'social-realism', 
+            'hard-edge-painting', 'neo-romanticism', 'tachisme', 'pointillism', 
+            'socialist-realism', 'neo-pop-art']
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--genre", help="which genre to scrape", choices=genre_list, default=None)
