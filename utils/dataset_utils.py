@@ -40,6 +40,7 @@ parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", defau
 parser.add_argument("--max_ang", type=float, help="max rotation angle (degrees)", default=0)
 parser.add_argument("--w", type=int, help="output image width", default=64)
 parser.add_argument("--h", type=int, help="output image height", default=64)
+parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=256)
 
 # augmentation
 parser.add_argument("--split", type=int, default=0, help="to split into training/test")
@@ -195,7 +196,7 @@ def augmentation(img, args):
     
 # main program    
 def main(args):
-    action, num_images, augment, split, combine = args.action, args.num_images, args.augment==1, args.split==1, args.combine==1
+    action, num_images, min_w, min_h, augment, split, combine = args.action, args.num_images, args.min_dim, args.min_dim, args.augment==1, args.split==1, args.combine==1
 
     # make output dir(s)
     input_dir, output_dir = args.input_dir, args.output_dir
@@ -223,6 +224,10 @@ def main(args):
             ext = img_path.split('.')[-1]
             img0 = Image.open(join(input_dir, img_path)).convert("RGB")
     
+            if img0.width < min_w or img0.height < min_h:
+                #print('skipping, too small (%d x %d)' % (img0.width, img0.height))
+                continue
+
             imgs0 = []
             if augment:
                 imgs0 = augmentation(img0, args)
@@ -250,14 +255,15 @@ def main(args):
 
             for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
                 out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
+                out_img = '%s_%d.%s' % (''.join(img_path.split('.')[0:-1]), i, ext)
                 if combine:                
                     img_f = Image.new('RGB', (args.w * 2, args.h))     
                     img_f.paste(img0.convert('RGB'), (0, 0))
                     img_f.paste(img1.convert('RGB'), (args.w, 0))
-                    img_f.save(join(out_dir, img_path[0:-5]+"_%d.%s"%(i, ext)))
+                    img_f.save(join(out_dir, out_img))
                 else:
                     img1 = img1.convert('RGB')
-                    img1.save(join(out_dir, img_path[0:-5]+"_%d.%s"%(i, ext)))
+                    img1.save(join(out_dir, out_img))
 
         except:
             print(" -> something went wrong")
