@@ -47,6 +47,8 @@ parser.add_argument("--min_dim", type=int, help="minimum width/height to allow f
 parser.add_argument("--split", type=int, default=0, help="to split into training/test")
 parser.add_argument("--pct_train", type=float, default=0.9, help="percentage that goes to training set")
 parser.add_argument("--combine", type=int, default=0, help="concatenate input and output images (like for training pix2pix)")
+parser.add_argument("--include_orig", type=int, default=0, help="if combine==0, include original?")
+
 
 
 
@@ -79,13 +81,16 @@ def posterize(im, n):
 
 
 def canny(im1):
+    im1 = pil2cv(im1)
+    print(im1.shape)
     im2 = cv2.GaussianBlur(im1, (5, 5), 0)
-    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
-    im2 = cv2.Canny(im2, 100, 200)
-    im2 = cv2.HoughLines(im2, 1, pi / 180, 70)
+    im2 = cv2.Canny(im2, 100, 150)
+#    im2 = cv2.HoughLines(im2, 1, 3.14157 / 180, 70)
 #    im2 = cv2.dilate(im2, (5, 5))
 #    im2 = cv2.dilate(im2, (3, 3))
+    print(im2.shape)
     im2 = cv2.cvtColor(im2, cv2.COLOR_GRAY2RGB)
+    im2 = cv2pil(im2)
     return im2
 
 
@@ -141,6 +146,10 @@ def trace(img):
     img = pil2cv(img)
     #im2 = posterize(img, 8)
     im2 = cv2.GaussianBlur(img, (5, 5), 0)
+    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
+    im2 = cv2.GaussianBlur(im2, (5, 5), 0)
+    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
+    im2 = cv2.GaussianBlur(im2, (5, 5), 0)
     im2 = cv2.GaussianBlur(im2, (3, 3), 0)
     im3 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
     ret, im4 = cv2.threshold(im3, 127, 255, 0)
@@ -206,7 +215,7 @@ def augmentation(img, args):
     
 # main program    
 def main(args):
-    action, num_images, min_w, min_h, augment, split, combine = args.action, args.num_images, args.min_dim, args.min_dim, args.augment==1, args.split==1, args.combine==1
+    action, num_images, min_w, min_h, augment, split, combine, include_orig = args.action, args.num_images, args.min_dim, args.min_dim, args.augment==1, args.split==1, args.combine==1, args.include_orig==1
 
     # make output dir(s)
     input_dir, output_dir = args.input_dir, args.output_dir
@@ -216,6 +225,11 @@ def main(args):
         os.mkdir(join(output_dir,'train'))
     if split and not os.path.isdir(join(output_dir,'test')):
         os.mkdir(join(output_dir,'test'))
+    if include_orig and combine==False:
+        os.mkdir(join(output_dir,'train/train_A'))
+        os.mkdir(join(output_dir,'train/train_B'))
+        os.mkdir(join(output_dir,'test/test_A'))
+        os.mkdir(join(output_dir,'test/test_B'))
     
     # cycle through input images
     images = [f for f in listdir(input_dir) if isfile(join(input_dir, f)) ]
@@ -229,54 +243,63 @@ def main(args):
         training[n_train:] = [0] * (len(images) - n_train)
     
     for img_idx, img_path in enumerate(tqdm(images)):
-        try:
-            print('open %d/%d : %s' % (img_idx, len(images), join(input_dir, img_path)))
-            ext = img_path.split('.')[-1]
-            img0 = Image.open(join(input_dir, img_path)).convert("RGB")
-    
-            if img0.width < min_w or img0.height < min_h:
-                #print('skipping, too small (%d x %d)' % (img0.width, img0.height))
-                continue
 
-            imgs0 = []
-            if augment:
-                imgs0 = augmentation(img0, args)
-            else:   
-                imgs0 = [img0]
-        
-            imgs = []
-            for img0 in tqdm(imgs0):
-		
-                if action == 'segment':
-                    img = pil2cv(img0)
-                    img = segment(img)
-    
-                elif action == 'colorize':
-                    colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
-                    img = quantiz_colors(img0)
+        print('open %d/%d : %s' % (img_idx, len(images), join(input_dir, img_path)))
+        ext = img_path.split('.')[-1]
+        img0 = Image.open(join(input_dir, img_path)).convert("RGB")
 
-                elif action == 'trace':
-                    img = trace(img0)
+        if img0.width < min_w or img0.height < min_h:
+            #print('skipping, too small (%d x %d)' % (img0.width, img0.height))
+            continue
+
+        imgs0 = []
+        if augment:
+            imgs0 = augmentation(img0, args)
+        else:   
+            imgs0 = [img0]
+
+        imgs = []
+        for img0 in tqdm(imgs0):
             
-                elif action == 'none':
-                    img = img0
+            if action == 'segment':
+                img = pil2cv(img0)
+                img = segment(img)
 
-                imgs.append(img)
+            elif action == 'colorize':
+                colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
+                img = quantiz_colors(img0)
 
-            for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
-                out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
-                out_img = '%s_%d.%s' % (''.join(img_path.split('.')[0:-1]), i, ext)
-                if combine:                
-                    img_f = Image.new('RGB', (args.w * 2, args.h))     
-                    img_f.paste(img0.convert('RGB'), (0, 0))
-                    img_f.paste(img1.convert('RGB'), (args.w, 0))
-                    img_f.save(join(out_dir, out_img))
-                else:
-                    img1 = img1.convert('RGB')
-                    img1.save(join(out_dir, out_img))
+            elif action == 'trace':
+                img = trace(img0)
+                #img = canny(img0)
 
-        except:
-            print(" -> something went wrong")
+            elif action == 'none':
+                img = img0
+
+            imgs.append(img)
+
+        for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
+            out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
+            out_dir_orig = join(output_dir, 'train/train_B' if training[img_idx]==1 else 'test/test_B') if split else output_dir
+            if include_orig and combine==False:
+                out_dir = join(output_dir, 'train/train_A' if training[img_idx]==1 else 'test/test_A') if split else output_dir
+            out_img = '%05d_%s_%d.%s' % (img_idx, ''.join(img_path.split('.')[0:-1]), i, ext)
+            if combine:                
+                img_f = Image.new('RGB', (args.w * 2, args.h))     
+                img_f.paste(img0.convert('RGB'), (0, 0))
+                img_f.paste(img1.convert('RGB'), (args.w, 0))
+                img_f.save(join(out_dir, out_img))
+            elif include_orig:
+                img1 = img1.convert('RGB')
+                img1.save(join(out_dir, out_img))
+                img0 = img0.convert('RGB')
+                img0.save(join(out_dir_orig, out_img))
+            else:
+                img1 = img1.convert('RGB')
+                img1.save(join(out_dir, out_img))
+
+#        except:
+ #           print(" -> something went wrong")
 
 
 if __name__ == '__main__':
