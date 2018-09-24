@@ -35,7 +35,10 @@ Testing example:
 ### darknet
 
     ./darknet detect cfg/yolov3.cfg yolov3.weights data/dog.jpg
+    ./darknet segmenter cfg/yolov3.cfg yolov3.weights data/dog.jpg
     # add deepdream
+    
+    
 
 ### neural-style
 
