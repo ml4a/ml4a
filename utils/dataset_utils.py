@@ -3,11 +3,20 @@ from os import listdir
 from os.path import isfile, join
 from random import random, sample
 from PIL import Image
+
 from skimage.segmentation import felzenszwalb
+from skimage.morphology import skeletonize, remove_small_objects
+from skimage.util import invert
+
 import argparse
 from tqdm import tqdm
 import numpy as np
 import cv2
+import hed
+
+
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify']
+
 
 #args
 # randomize training/test (across augmentation also)
@@ -28,12 +37,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir", help="where to get input images")
 parser.add_argument("--output_dir", help="where to put output images")
 parser.add_argument("--num_images", type=int, help="number of images to take (omit to use all)", default=None)
+parser.add_argument("--shuffle", action="store_true", help="shuffle image")
+
 
 # processing action
-parser.add_argument("--action", type=str, help="which actions {none,quantize,trace,segment}", required=True, choices=['none', 'quantize', 'trace', 'segment'], default="")
+parser.add_argument("--action", type=str, help="comma-separated: lis of actions from {%s} to take, e.g. trace,hed" % ','.join(allowable_actions), required=True, default="")
 
 # augmentation
-parser.add_argument("--augment", type=int, default=0, help="to augment or not augment")
+parser.add_argument("--augment", action="store_true", help="to augment or not augment")
 parser.add_argument("--num_augment", type=int, help="number of regions to output", default=1)
 parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=0.6667)
 parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.075)
@@ -44,20 +55,20 @@ parser.add_argument("--h", type=int, help="output image height", default=64)
 parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=256)
 
 # augmentation
-parser.add_argument("--split", type=int, default=0, help="to split into training/test")
+parser.add_argument("--split", action="store_true", help="to split into training/test")
 parser.add_argument("--pct_train", type=float, default=0.9, help="percentage that goes to training set")
-parser.add_argument("--combine", type=int, default=0, help="concatenate input and output images (like for training pix2pix)")
-parser.add_argument("--include_orig", type=int, default=0, help="if combine==0, include original?")
+parser.add_argument("--combine", action="store_true", help="concatenate input and output images (like for training pix2pix)")
+parser.add_argument("--include_orig", action="store_true", help="if combine==0, include original?")
 
 
 
 
 def cv2pil(img):
-    if len(img.shape) == 2:
+    if len(img.shape) == 2 or img.shape[2]==1:
         cv2_im = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     else:
         cv2_im = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    pil_im = Image.fromarray(cv2_im)
+    pil_im = Image.fromarray(cv2_im.astype('uint8'))
     return pil_im
 
 def pil2cv(img):
@@ -67,6 +78,11 @@ def pil2cv(img):
     cv2_image = cv2_image[:, :, ::-1].copy()
     return cv2_image
     
+def try_make_dir(new_dir):
+    if not os.path.isdir(new_dir):
+        os.mkdir(new_dir)
+
+## Operations
 
 def posterize(im, n):
     indices = np.arange(0,256)   # List of all colors 
@@ -78,42 +94,26 @@ def posterize(im, n):
     im2 = cv2.convertScaleAbs(im2) # Converting image back to uint8
     return im2
 
-
-
 def canny(im1):
     im1 = pil2cv(im1)
-    print(im1.shape)
     im2 = cv2.GaussianBlur(im1, (5, 5), 0)
     im2 = cv2.Canny(im2, 100, 150)
-#    im2 = cv2.HoughLines(im2, 1, 3.14157 / 180, 70)
-#    im2 = cv2.dilate(im2, (5, 5))
-#    im2 = cv2.dilate(im2, (3, 3))
-    print(im2.shape)
     im2 = cv2.cvtColor(im2, cv2.COLOR_GRAY2RGB)
     im2 = cv2pil(im2)
     return im2
 
-
-
-
-
-
-
-
-
-# colorization
 def image2colorlabels(img, colors):
     h, w = img.height, img.width
     pixels = np.array(list(img.getdata()))
     dists = np.array([np.sum(np.abs(pixels-c), axis=1) for c in colors])
     classes = np.argmin(dists, axis=0)
-
+    
 def colorize_labels(img, colors):
     h, w = img.height, img.width
     classes = image2colorlabels(img, colors)
     img = Image.fromarray(np.uint8(classes.reshape((h, w, 3))))
     return img
-    
+
 def quantize_colors(img, colors):
     h, w = img.height, img.width
     classes = image2colorlabels(img, colors)
@@ -122,6 +122,7 @@ def quantize_colors(img, colors):
     return img
 
 def segment(img):
+    img = pil2cv(img)
     h, w = img.shape[0:2]
     img = cv2.bilateralFilter(img, 9, 100, 100)
     scale = int(h * w / 1000)
@@ -139,18 +140,10 @@ def segment(img):
         out_image += smooth_segment
     out_image = Image.fromarray(out_image.astype('uint8'))
     return out_image
-    
 
-# tracing
 def trace(img):
     img = pil2cv(img)
-    #im2 = posterize(img, 8)
     im2 = cv2.GaussianBlur(img, (5, 5), 0)
-    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
-    im2 = cv2.GaussianBlur(im2, (5, 5), 0)
-    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
-    im2 = cv2.GaussianBlur(im2, (5, 5), 0)
-    im2 = cv2.GaussianBlur(im2, (3, 3), 0)
     im3 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
     ret, im4 = cv2.threshold(im3, 127, 255, 0)
     ret, img = cv2.threshold(im3, 255, 255, 0)
@@ -160,13 +153,29 @@ def trace(img):
         cv2.drawContours(img, [contour], 0, (255), 2)
     img = cv2pil(img)
     return img
-    
 
+
+def simplify(img):
+    w, h = img.width, img.height
+    size_thresh = 0.001 * w * h
+    img = pil2cv(img)
+    img = cv2.GaussianBlur(img, (3, 3), 0)
+    img = cv2.GaussianBlur(img, (3, 3), 0)
+    img = hed.run_hed(cv2pil(img))
+    ret, img = cv2.threshold(pil2cv(img), 50, 255, 0)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = remove_small_objects(img.astype('bool'), size_thresh)
+    img = 255 * skeletonize(img).astype('uint8')
+    img = cv2pil(img)
+    return img
+    
+    
 def upsample(img, w2, h2):
     h1, w1 = img.height, img.width
     r = max(float(w2)/w1, float(h2)/h1)
     img = img.resize((int(r*w1), int(r*h1)), resample=Image.BICUBIC)
     return img
+
 
 def crop_rot_resize(img, frac, w2, h2, ang, stretch):
     if img.height<h2 or img.width<w2:
@@ -201,7 +210,6 @@ def crop_rot_resize(img, frac, w2, h2, ang, stretch):
     return img_resize
 
 
-# augmentation
 def augmentation(img, args):
     num, w2, h2, frac, frac_vary, max_ang, max_stretch = args.num_augment, args.w, args.h, args.frac, args.frac_vary, args.max_ang, args.max_stretch
     aug_imgs = []
@@ -213,29 +221,49 @@ def augmentation(img, args):
         aug_imgs.append(aug_img)
     return aug_imgs
     
+
+    
+    
 # main program    
 def main(args):
-    action, num_images, min_w, min_h, augment, split, combine, include_orig = args.action, args.num_images, args.min_dim, args.min_dim, args.augment==1, args.split==1, args.combine==1, args.include_orig==1
+    action, num_images, min_w, min_h, pct_train, augment, split, combine, include_orig, shuffle = args.action, args.num_images, args.min_dim, args.min_dim, args.pct_train, args.augment, args.split, args.combine, args.include_orig, args.shuffle
 
-    # make output dir(s)
+    # get list of actions
+    actions = action.split(',')
+    if False in [a in allowable_actions for a in actions]:
+        raise Exception('one of your actions does not exist')
+    
+    # I/O directoris
     input_dir, output_dir = args.input_dir, args.output_dir
+    output_train_dir = join(output_dir, 'train')
+    output_test_dir = join(output_dir, 'test')
+    output_trainA_dir = join(output_dir,'train/train_A')
+    output_trainB_dir = join(output_dir,'train/train_B')
+    output_testA_dir = join(output_dir,'test/test_A')
+    output_testB_dir = join(output_dir,'test/test_B')
+
+    # which directories to make
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
-    if split and not os.path.isdir(join(output_dir,'train')):
-        os.mkdir(join(output_dir,'train'))
-    if split and not os.path.isdir(join(output_dir,'test')):
-        os.mkdir(join(output_dir,'test'))
+    
+    if split:
+        try_make_dir(output_train_dir)
+        try_make_dir(output_test_dir)
+        
     if include_orig and combine==False:
-        os.mkdir(join(output_dir,'train/train_A'))
-        os.mkdir(join(output_dir,'train/train_B'))
-        os.mkdir(join(output_dir,'test/test_A'))
-        os.mkdir(join(output_dir,'test/test_B'))
+        try_make_dir(output_trainA_dir)
+        try_make_dir(output_trainB_dir)
+        if pct_train < 1.0:
+            try_make_dir(output_testA_dir)
+            try_make_dir(output_testB_dir)
     
     # cycle through input images
     images = [f for f in listdir(input_dir) if isfile(join(input_dir, f)) ]
-    sort_order = sorted(sample(range(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
+    sort_order = sorted(range(min(num_images if num_images is not None else 1e8, len(images))))
+    if shuffle:
+        sort_order = sorted(sample(range(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
     images = [images[i] for i in sort_order]
-
+    
     # if to split into training/test flders
     training = [1] * len(images)
     if split:
@@ -245,7 +273,7 @@ def main(args):
     for img_idx, img_path in enumerate(tqdm(images)):
 
         print('open %d/%d : %s' % (img_idx, len(images), join(input_dir, img_path)))
-        ext = img_path.split('.')[-1]
+        ext = 'png' #img_path.split('.')[-1]
         img0 = Image.open(join(input_dir, img_path)).convert("RGB")
 
         if img0.width < min_w or img0.height < min_h:
@@ -259,22 +287,24 @@ def main(args):
             imgs0 = [img0]
 
         imgs = []
-        for img0 in tqdm(imgs0):
+        for img0 in tqdm(imgs0):            
+
+            img = img0
             
-            if action == 'segment':
-                img = pil2cv(img0)
-                img = segment(img)
-
-            elif action == 'colorize':
-                colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
-                img = quantiz_colors(img0)
-
-            elif action == 'trace':
-                img = trace(img0)
-                #img = canny(img0)
-
-            elif action == 'none':
-                img = img0
+            for a in actions:
+                if a == 'segment':
+                    img = segment(img)
+                elif a == 'colorize':
+                    colors = [[255,255,255], [0,0,0], [127,0,0], [0, 0, 127], [0, 127, 0]]
+                    img = quantize_colors(img, colors)
+                elif a == 'trace':
+                    img = trace(img)
+                elif a == 'hed':
+                    img = hed.run_hed(img)
+                elif a == 'simplify':
+                    img = simplify(img)
+                elif a == 'none' or a == '':
+                    pass
 
             imgs.append(img)
 
@@ -297,9 +327,6 @@ def main(args):
             else:
                 img1 = img1.convert('RGB')
                 img1.save(join(out_dir, out_img))
-
-#        except:
- #           print(" -> something went wrong")
 
 
 if __name__ == '__main__':
