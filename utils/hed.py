@@ -18,15 +18,6 @@ from tensorpack.dataflow import dataset
 from tensorpack.utils.gpu import get_num_gpu
 from tensorpack.tfutils import optimizer, gradproc
 from tensorpack.tfutils.summary import add_moving_summary, add_param_summary
-
-# arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--gpu', help='comma separated list of GPU(s) to use.')
-parser.add_argument('--load', help='load model', default='../data/HED_reproduced.npz')
-parser.add_argument('--view', help='view dataset', action='store_true')
-parser.add_argument('--run', help='run model on images')
-parser.add_argument('--output', help='fused output filename. default to out-fused.png')
-args = parser.parse_args()
     
 # model
 pred_config = None
@@ -304,8 +295,9 @@ def run(model_path, image_path, output):
         pred = outputs[5][0]
         cv2.imwrite(output, pred * 255)
 
-def run_hed(img):
-    model_path = args.load
+def run_hed(img, model_path='../data/HED_reproduced.npz'):
+    global pred_config
+    global predictor
     if pred_config == None:
         pred_config = PredictConfig(
             model=Model(),
@@ -325,6 +317,14 @@ def run_hed(img):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--gpu', help='comma separated list of GPU(s) to use.')
+    parser.add_argument('--load', help='load model', default='../data/HED_reproduced.npz')
+    parser.add_argument('--view', help='view dataset', action='store_true')
+    parser.add_argument('--run', help='run model on images')
+    parser.add_argument('--output', help='fused output filename. default to out-fused.png')
+    args = parser.parse_args()
+
     if args.gpu:
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
