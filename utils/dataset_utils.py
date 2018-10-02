@@ -2,20 +2,15 @@ import os
 from os import listdir
 from os.path import isfile, join
 from random import random, sample
-from PIL import Image
-
-from skimage.segmentation import felzenszwalb
-from skimage.morphology import skeletonize, remove_small_objects
-from skimage.util import invert
-
 import argparse
 from tqdm import tqdm
 import numpy as np
+from PIL import Image
+from skimage.segmentation import felzenszwalb
+from skimage.morphology import skeletonize, remove_small_objects
+from skimage.util import invert
 import cv2
-import hed
-
-
-allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify']
+from hed import *
 
 
 #args
@@ -30,6 +25,8 @@ allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify']
 # output save format (jpg png)
 
 
+
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify']
 
 parser = argparse.ArgumentParser()
 
@@ -60,6 +57,8 @@ parser.add_argument("--pct_train", type=float, default=0.9, help="percentage tha
 parser.add_argument("--combine", action="store_true", help="concatenate input and output images (like for training pix2pix)")
 parser.add_argument("--include_orig", action="store_true", help="if combine==0, include original?")
 
+# etc
+parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduced.npz', help="model path for HED (default ../data)")
 
 
 
@@ -155,13 +154,13 @@ def trace(img):
     return img
 
 
-def simplify(img):
+def simplify(img, hed_model_path):
     w, h = img.width, img.height
     size_thresh = 0.001 * w * h
     img = pil2cv(img)
     img = cv2.GaussianBlur(img, (3, 3), 0)
     img = cv2.GaussianBlur(img, (3, 3), 0)
-    img = hed.run_hed(cv2pil(img))
+    img = run_hed(cv2pil(img), hed_model_path)
     ret, img = cv2.threshold(pil2cv(img), 50, 255, 0)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = remove_small_objects(img.astype('bool'), size_thresh)
@@ -226,7 +225,7 @@ def augmentation(img, args):
     
 # main program    
 def main(args):
-    action, num_images, min_w, min_h, pct_train, augment, split, combine, include_orig, shuffle = args.action, args.num_images, args.min_dim, args.min_dim, args.pct_train, args.augment, args.split, args.combine, args.include_orig, args.shuffle
+    action, num_images, min_w, min_h, pct_train, augment, split, combine, include_orig, shuffle, hed_model_path = args.action, args.num_images, args.min_dim, args.min_dim, args.pct_train, args.augment, args.split, args.combine, args.include_orig, args.shuffle, args.hed_model_path
 
     # get list of actions
     actions = action.split(',')
@@ -300,9 +299,9 @@ def main(args):
                 elif a == 'trace':
                     img = trace(img)
                 elif a == 'hed':
-                    img = hed.run_hed(img)
+                    img = run_hed(img, hed_model_path)
                 elif a == 'simplify':
-                    img = simplify(img)
+                    img = simplify(img, hed_model_path)
                 elif a == 'none' or a == '':
                     pass
 
