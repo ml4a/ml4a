@@ -236,10 +236,10 @@ def main(args):
     input_dir, output_dir = args.input_dir, args.output_dir
     output_train_dir = join(output_dir, 'train')
     output_test_dir = join(output_dir, 'test')
-    output_trainA_dir = join(output_dir,'train/train_A')
-    output_trainB_dir = join(output_dir,'train/train_B')
-    output_testA_dir = join(output_dir,'test/test_A')
-    output_testB_dir = join(output_dir,'test/test_B')
+    output_trainA_dir = join(output_dir, 'train/train_A')
+    output_trainB_dir = join(output_dir, 'train/train_B')
+    output_testA_dir = join(output_dir, 'test/test_A')
+    output_testB_dir = join(output_dir, 'test/test_B')
 
     # which directories to make
     if not os.path.isdir(output_dir):
