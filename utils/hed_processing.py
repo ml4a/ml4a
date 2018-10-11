@@ -295,6 +295,7 @@ def run(model_path, image_path, output):
         pred = outputs[5][0]
         cv2.imwrite(output, pred * 255)
 
+
 def run_hed(img, model_path='../data/HED_reproduced.npz'):
     global pred_config
     global predictor

@@ -39,4 +39,17 @@ python3 dataset_utils.py --input_dir ../datasets/futurium/landscape_subset/ --ou
 
 ### Dutils
 
-s
+#    input_src = 'trump_sub_short.mp4'
+    #input_src = '../data/101_ObjectCategories/camera'
+
+target_face_image trump2.png
+save_ext = 'png'
+save_mode = 'split' # 'combined', 'split', 'output_only'
+    pct_test = 0.2
+
+
+
+python3 dataset_utils.py --input_src trump_sub_short.mp4 --output_dir test66 \
+    --w 1024 --h 512 --num_per 2 --frac 0.95 --frac_vary 0.05 \
+    --max_ang_rot 0 --max_stretch 0 --centered \
+    --action simplify --save_mode combined
