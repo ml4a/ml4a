@@ -1,8 +1,7 @@
-need
- - pip install --upgrade git+https://github.com/tensorpack/tensorpack.git
- - `wget http://models.tensorpack.com/HED/HED_reproduced.npz ../data/.`
 
-### Scraping WikiArt (thanks to [@robbiebarrat](http://github.com/robbiebarrat/))
+# Scraping WikiArt 
+
+Thanks to [@robbiebarrat](http://github.com/robbiebarrat/) for the original script
 
 See https://www.wikiart.org/en/paintings-by-genre/ for list of genres. List follows:
 
@@ -20,36 +19,51 @@ Example:
     python scrape_wikiart.py --genre landscape --num_pages 3 --output_dir ../datasets
     python scrape_wikiart.py --style impressionism --num_pages 3 --output_dir ../datasets
     
+
+# Dataset-utils
     
-### Dataset utils
+Input options
 
-Example:
+* `--input_src` either a video (mp4) or directory of images to use as the input source
+* `--max_num_images` cap number of images to use as input (if None, no cap, default None)
+* `--shuffle` shuffle the input images (true) or go in order (false)
+* `--min_dim` skip any image whose width or height are less (default 0)
 
-This script will take `--num_images` images from `--input_dir` (all if omitted), make `--num_augment` copies of it rotated by random angle up to max `--max_ang`, random crop of  `--frac +/- --frac_vary` %, resized to `--w` x `--h`, saved to `--output_dir`.
+Output options
 
-    python3 dataset_utils.py --input_dir ../datasets/portrait/ --output_dir ../datasets/portrait_1024 --augment 1 --num_augment 4 --action simplify --frac 0.75 --frac_vary 0.075 --max_ang 4 --w 1024 --h 1024 --split 0 --pct_train 1.0 --combine 0 --num_images 10
+* `--output_dir` directory to put resulting images into
+* `--pct_test` fraction of output images (0-1) to reserve for testing set (default 0)
+* `--save_mode` "split": separate directories for input/output, "combined": concatenate horizontally, "output_only": save only the resulting outputs
+* `--save_ext` save jpg or png
+
+Pre-processing and augmentation options
+
+* `--w` output width (default 256)
+* `--h` output height (default 256)
+* `--num_per` how many copies of each input image (default 1)
+* `--frac` fraction of original image to crop (default 1, whole image)
+* `--frac_vary` random deviation to fraction (default 0)
+* `--max_ang_rot` rotate the image randomly up to "max_ang_rot" (default 0, no stretch)
+* `--max_stretch` stretch the image randomly up to "max_stretch" (default 0, no stretch)
+* `--centered` take center crop (if false, take random crop, default false)
+
+Processing the input image
+
+* `--action` a comma-separated list of processing actions from ('quantize', 'trace', 'hed', 'segment', 'simplify', 'face')
+* `--target_face_image` if doing face extraction, use this image to specify a target face (if None, then it takes first face it can find)
+* `--hed_model_path` path to model file for holistic-edge-detection (HED) processing default='../data/HED_reproduced.npz'
+* `--landmarks_path` path to dlib face landmarks file (default='../data/shape_predictor_68_face_landmarks.dat')
 
 
+#### Install
+
+    pip install --upgrade git+https://github.com/tensorpack/tensorpack.git
+    wget http://models.tensorpack.com/HED/HED_reproduced.npz ../data/.`
 
 
-python3 dataset_utils.py --input_dir ../datasets/futurium/landscape_subset/ --output_dir ../datasets/futurium/test3 --augment --num_augment 1 --action simplify --frac 0.975 --frac_vary 0.025 --max_ang 0 --w 1024 --h 512 --pct_train 1.0 --num_images 5 --include_orig --split
+#### Example
 
-
-
-
-### Dutils
-
-#    input_src = 'trump_sub_short.mp4'
-    #input_src = '../data/101_ObjectCategories/camera'
-
-target_face_image trump2.png
-save_ext = 'png'
-save_mode = 'split' # 'combined', 'split', 'output_only'
-    pct_test = 0.2
-
-
-
-python3 dataset_utils.py --input_src trump_sub_short.mp4 --output_dir test66 \
-    --w 1024 --h 512 --num_per 2 --frac 0.95 --frac_vary 0.05 \
-    --max_ang_rot 0 --max_stretch 0 --centered \
-    --action simplify --save_mode combined
+    python3 dataset_utils.py --input_src myMovie.mp4 --output_dir myResults \
+        --w 1024 --h 512 --num_per 2 --frac 0.95 --frac_vary 0.05 \
+        --max_ang_rot 0 --max_stretch 0 --centered \
+        --action simplify --save_mode combined
