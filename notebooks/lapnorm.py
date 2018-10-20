@@ -16,7 +16,7 @@ import tensorflow as tf
 
 
 #Create a session and load the Inception graph, then print the available layers.
-model_fn = '../data/inception5h/tensorflow_inception_graph.pb'
+model_fn = 'inception5h/tensorflow_inception_graph.pb'
 
 graph = tf.Graph()
 sess = tf.InteractiveSession(graph=graph)
