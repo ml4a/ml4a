@@ -9,6 +9,7 @@ import face_recognition
 # model
 detector = None
 predictor = None
+jx0, jy0, jw0, jh0 = None, None, None, None
 
 
 def initialize_face_processing(landmarks_path):
@@ -28,6 +29,8 @@ def get_face(img, target_encodings):
     locations = face_recognition.face_locations(img, model="cnn")
     encodings = face_recognition.face_encodings(img, locations)
     landmarks = face_recognition.face_landmarks(img, locations)
+    if len(locations) == 0:
+        return None, None, None, None, None
     if target_encodings is not None:
         distances = [ face_recognition.face_distance([target_encodings], encoding) for encoding in encodings ]
         idx_closest = distances.index(min(distances))
@@ -38,6 +41,26 @@ def get_face(img, target_encodings):
     x, y, w, h = left, top, right-left, bottom-top
     return x, y, w, h, target_landmarks
 
+
+def get_crop_around_face(img, target_encodings, aspect_ratio, face_crop, face_crop_lerp):
+    global jx0, jy0, jw0, jh0
+    ix, iy, iw, ih, ilandmarks = get_face(img, target_encodings)
+    if ilandmarks is None:
+        return None, None, None, None
+    if aspect_ratio > iw/ih:
+        jw, jh = ih * aspect_ratio, ih
+    else:
+        jw, jh = iw, ih / aspect_ratio
+    jw, jh = jw / face_crop, jh / face_crop
+    jx, jy = ix - 0.5 * (jw - iw), iy - 0.5 * (jh - ih)
+    if jx0 is None:
+        jx0, jy0, jw0, jh0 = jx, jy, jw, jh
+    jx0 = jx0 * (1.0 - face_crop_lerp) + jx * face_crop_lerp
+    jy0 = jy0 * (1.0 - face_crop_lerp) + jy * face_crop_lerp
+    jw0 = jw0 * (1.0 - face_crop_lerp) + jw * face_crop_lerp
+    jh0 = jh0 * (1.0 - face_crop_lerp) + jh * face_crop_lerp
+    return jx0, jy0, jw0, jh0
+        
 
 def draw_landmarks(img_, landmarks, color, width):
     img = Image.fromarray(np.copy(img_))

@@ -1,295 +1,195 @@
 import os
-from os import listdir
-from os.path import isfile, join
 from random import random, sample
 import argparse
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
-from skimage.segmentation import felzenszwalb
-from skimage.morphology import skeletonize, remove_small_objects
-from skimage.util import invert
+from PIL import Image, ImageDraw
+from imutils import video
 import cv2
-from hed import *
+
+import hed_processing
+from processing import *
+from face_processing import *
 
 
-#args
-# randomize training/test (across augmentation also)
-# rotation
-# simplify tracing
-# output_format rgb, g
-# output_size [w, h] or keep the same
-# crops/centers
-#  - to crop or to hard-resize
-# duplication + augmentation (sheer, rotate, etc)
-# output save format (jpg png)
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify', 'face']
 
-
-
-allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify']
-
-parser = argparse.ArgumentParser()
 
 # input, output
-parser.add_argument("--input_dir", help="where to get input images")
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_src", help="input: directory of input images or movie file")
+parser.add_argument("--max_num_images", type=int, help="maximum number of images to take (omit to use all)", default=None)
+parser.add_argument("--shuffle", action="store_true", help="shuffle input images")
+parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=0)
 parser.add_argument("--output_dir", help="where to put output images")
-parser.add_argument("--num_images", type=int, help="number of images to take (omit to use all)", default=None)
-parser.add_argument("--shuffle", action="store_true", help="shuffle image")
-
-
-# processing action
-parser.add_argument("--action", type=str, help="comma-separated: lis of actions from {%s} to take, e.g. trace,hed" % ','.join(allowable_actions), required=True, default="")
+parser.add_argument("--pct_test", type=float, help="percentage that goes to test set (default 0)", default=0)
+parser.add_argument("--save_mode", help="save output combined (pix2pix-style), split into directories, or just output", choices=['split','combined','output_only'], default='output_only')
+parser.add_argument("--save_ext", help="image save extension (jpg/png)", choices=['jpg','png'], default='png')
 
 # augmentation
-parser.add_argument("--augment", action="store_true", help="to augment or not augment")
-parser.add_argument("--num_augment", type=int, help="number of regions to output", default=1)
-parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=0.6667)
-parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.075)
-parser.add_argument("--max_ang", type=float, help="max rotation angle (degrees)", default=0)
+parser.add_argument("--w", type=int, help="output image width", default=256)
+parser.add_argument("--h", type=int, help="output image height", default=256)
+parser.add_argument("--num_per", type=int, help="how many copies of original, augmented", default=1)
+parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=1.0)
+parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.0)
+parser.add_argument("--max_ang_rot", type=float, help="max rotation angle (degrees)", default=0)
 parser.add_argument("--max_stretch", type=float, help="maximum stretching factor (0=none)", default=0)
-parser.add_argument("--w", type=int, help="output image width", default=64)
-parser.add_argument("--h", type=int, help="output image height", default=64)
-parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=256)
-
-# augmentation
-parser.add_argument("--split", action="store_true", help="to split into training/test")
-parser.add_argument("--pct_train", type=float, default=0.9, help="percentage that goes to training set")
-parser.add_argument("--combine", action="store_true", help="concatenate input and output images (like for training pix2pix)")
-parser.add_argument("--include_orig", action="store_true", help="if combine==0, include original?")
-
-# etc
-parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduced.npz', help="model path for HED (default ../data)")
-
-
-
-def cv2pil(img):
-    if len(img.shape) == 2 or img.shape[2]==1:
-        cv2_im = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-    else:
-        cv2_im = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    pil_im = Image.fromarray(cv2_im.astype('uint8'))
-    return pil_im
-
-def pil2cv(img):
-    pil_image = img.convert('RGB') 
-    cv2_image = np.array(pil_image) 
-    cv2_image = cv2.cvtColor(cv2_image, cv2.COLOR_RGB2BGR)
-    cv2_image = cv2_image[:, :, ::-1].copy()
-    return cv2_image
+parser.add_argument("--centered", action="store_true", help="to use centered crops instead of random ones")
     
+# actions
+parser.add_argument("--action", type=str, help="comma-separated: lis of actions from {%s} to take, e.g. trace,hed" % ','.join(allowable_actions), required=True, default="")
+parser.add_argument("--target_face_image", type=str, help="image of target face to extract (if None, extract first found one)", default=None)
+parser.add_argument("--face_crop", type=float, help="crop around target face first, with face fitting this fraction of the crop (default None, don't crop)", default=None)
+parser.add_argument("--face_crop_lerp", type=float, help="smoothing parameter for shifting around lerp (default 1, no lerp)", default=1.0)
+               
+# data files
+parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduced.npz', help="model path for HED")
+parser.add_argument("--landmarks_path", type=str, default='../data/shape_predictor_68_face_landmarks.dat', help="path to face landmarks file")
+
+
+
 def try_make_dir(new_dir):
     if not os.path.isdir(new_dir):
         os.mkdir(new_dir)
 
-## Operations
 
-def posterize(im, n):
-    indices = np.arange(0,256)   # List of all colors 
-    divider = np.linspace(0,255,n+1)[1] # we get a divider
-    quantiz = np.int0(np.linspace(0,255,n)) # we get quantization colors
-    color_levels = np.clip(np.int0(indices/divider),0,n-1) # color levels 0,1,2..
-    palette = quantiz[color_levels] # Creating the palette
-    im2 = palette[im]  # Applying palette on image
-    im2 = cv2.convertScaleAbs(im2) # Converting image back to uint8
-    return im2
+def setup_output_dirs(output_dir, save_mode, include_test):
+    train_dir = os.path.join(output_dir, 'train')
+    test_dir = os.path.join(output_dir, 'test')
+    trainA_dir, trainB_dir, testA_dir, testB_dir = None, None, None, None
 
-def canny(im1):
-    im1 = pil2cv(im1)
-    im2 = cv2.GaussianBlur(im1, (5, 5), 0)
-    im2 = cv2.Canny(im2, 100, 150)
-    im2 = cv2.cvtColor(im2, cv2.COLOR_GRAY2RGB)
-    im2 = cv2pil(im2)
-    return im2
+    if include_test:
+        if save_mode == 'split':
+            trainA_dir = os.path.join(train_dir, 'train_A')
+            testA_dir = os.path.join(test_dir, 'test_A')
+            trainB_dir = os.path.join(train_dir, 'train_B')
+            testB_dir = os.path.join(test_dir, 'test_B')
+        else:
+            trainA_dir = train_dir
+            testA_dir = test_dir
+            trainB_dir = train_dir
+            testB_dir = test_dir
 
-def image2colorlabels(img, colors):
-    h, w = img.height, img.width
-    pixels = np.array(list(img.getdata()))
-    dists = np.array([np.sum(np.abs(pixels-c), axis=1) for c in colors])
-    classes = np.argmin(dists, axis=0)
+    elif save_mode == 'split':
+        train_dir = output_dir
+        trainA_dir = os.path.join(output_dir, 'train_A')
+        trainB_dir = os.path.join(output_dir, 'train_B')
     
-def colorize_labels(img, colors):
-    h, w = img.height, img.width
-    classes = image2colorlabels(img, colors)
-    img = Image.fromarray(np.uint8(classes.reshape((h, w, 3))))
-    return img
-
-def quantize_colors(img, colors):
-    h, w = img.height, img.width
-    classes = image2colorlabels(img, colors)
-    pixels_clr = np.array([colors[p] for p in classes]).reshape((h, w, 3))
-    img = Image.fromarray(np.uint8(pixels_clr))
-    return img
-
-def segment(img):
-    img = pil2cv(img)
-    h, w = img.shape[0:2]
-    img = cv2.bilateralFilter(img, 9, 100, 100)
-    scale = int(h * w / 1000)
-    segments = felzenszwalb(img, scale=scale, sigma=0.5, min_size=150)
-    out_image = np.zeros((h, w, 3))
-    num_segments = len(np.unique(segments))
-    for s in tqdm(range(num_segments)):
-        label_map = segments==s
-        label_map3 = np.dstack([label_map] * 3)
-        masked_img = np.multiply(label_map3, img)
-        #avg_color = np.sum(np.sum(masked_img, axis=0), axis=0) / np.count_nonzero(label_map)  # maybe median is better
-        nonzeros = [ masked_img[:, :, c].reshape((h * w)) for c in range(3) ]
-        median_color = [ np.median(np.take(nonzeros[c], nonzeros[c].nonzero())) for c in range(3) ]
-        smooth_segment = (label_map3 * median_color).astype('uint8')
-        out_image += smooth_segment
-    out_image = Image.fromarray(out_image.astype('uint8'))
-    return out_image
-
-def trace(img):
-    img = pil2cv(img)
-    im2 = cv2.GaussianBlur(img, (5, 5), 0)
-    im3 = cv2.cvtColor(im2, cv2.COLOR_RGB2GRAY)
-    ret, im4 = cv2.threshold(im3, 127, 255, 0)
-    ret, img = cv2.threshold(im3, 255, 255, 0)
-    im5, contours, hierarchy = cv2.findContours(im4, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contours = [ c for c in contours if cv2.arcLength(c, True) > 8 ] #and cv2.contourArea(c) > 10]
-    for contour in contours:
-        cv2.drawContours(img, [contour], 0, (255), 2)
-    img = cv2pil(img)
-    return img
-
-
-def simplify(img, hed_model_path):
-    w, h = img.width, img.height
-    size_thresh = 0.001 * w * h
-    img = pil2cv(img)
-    img = cv2.GaussianBlur(img, (3, 3), 0)
-    img = cv2.GaussianBlur(img, (3, 3), 0)
-    img = run_hed(cv2pil(img), hed_model_path)
-    ret, img = cv2.threshold(pil2cv(img), 50, 255, 0)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    img = remove_small_objects(img.astype('bool'), size_thresh)
-    img = 255 * skeletonize(img).astype('uint8')
-    img = cv2pil(img)
-    return img
-    
-    
-def upsample(img, w2, h2):
-    h1, w1 = img.height, img.width
-    r = max(float(w2)/w1, float(h2)/h1)
-    img = img.resize((int(r*w1), int(r*h1)), resample=Image.BICUBIC)
-    return img
-
-
-def crop_rot_resize(img, frac, w2, h2, ang, stretch):
-    if img.height<h2 or img.width<w2:
-        img = upsample(img, w2, h2)
-    
-    if stretch != 0:
-        v = random() < 0.5
-        h = 1.0 if not v else (1.0 + stretch)
-        w = 1.0 if v else (1.0 + stretch)
-        img = img.resize((int(img.width * w), int(img.height * h)), resample=Image.BICUBIC)
-        
-    if ang > 0:
-        img = img.rotate(ang, resample=Image.BICUBIC, expand=False)
-   
-    ar = float(w2 / h2)
-    h1, w1 = img.height, img.width
-
-    if float(w1) / h1 > ar:
-        h1_crop = max(h2, h1 * frac)
-        w1_crop = h1_crop * ar
     else:
-        w1_crop = max(w2, w1 * frac)
-        h1_crop = w1_crop / ar
+        train_dir = output_dir
+        trainA_dir = output_dir
+        trainB_dir = output_dir
 
-    #xr, yr = 0.275 + 0.45*random(), 0.275 + 0.45*random()
-    xr, yr = random(), random()
-    x_crop, y_crop = (w1 - w1_crop - 1) * xr, (h1 - h1_crop - 1) * yr
-    h1_crop, w1_crop, y_crop, x_crop = int(h1_crop), int(w1_crop), int(y_crop), int(x_crop)
-    img_crop = img.crop((x_crop, y_crop, x_crop+w1_crop, y_crop+h1_crop))
-    img_resize = img_crop.resize((w2, h2))
+    try_make_dir(output_dir)   
+
+    try_make_dir(train_dir)
+    try_make_dir(trainA_dir)
+    try_make_dir(trainB_dir)
+
+    if include_test:
+        try_make_dir(test_dir)
+        try_make_dir(testA_dir)
+        try_make_dir(testB_dir)
     
-    return img_resize
+    return trainA_dir, trainB_dir, testA_dir, testB_dir
 
 
-def augmentation(img, args):
-    num, w2, h2, frac, frac_vary, max_ang, max_stretch = args.num_augment, args.w, args.h, args.frac, args.frac_vary, args.max_ang, args.max_stretch
-    aug_imgs = []
-    for n in range(num):
-        ang = max_ang * (-1.0 + 2.0 * random())
+
+def get_frame_indexes(max_num_images, num_images, shuffle):
+    num_samples = min(max_num_images if max_num_images is not None else 1e8, num_images)
+    sort_order = sample(range(num_images), num_samples) if shuffle else sorted(range(num_samples))
+    return sort_order
+
+
+
+def augmentation(img, num_per, out_w, out_h, frac, frac_vary, max_ang_rot, max_stretch, centered):
+    imgs = []
+    for i in range(num_per):
+        ang = max_ang_rot * (-1.0 + 2.0 * random())
         frac_amt = frac + frac_vary * (-1.0 + 2.0 * random())
         stretch = max_stretch * (-1.0 + 2.0 * random())
-        aug_img = crop_rot_resize(img, frac_amt, w2, h2, ang, stretch)
-        aug_imgs.append(aug_img)
-    return aug_imgs
-    
+        newimg = crop_rot_resize(img, frac_amt, out_w, out_h, ang, stretch, centered)
+        imgs.append(newimg)
+    return imgs
 
-    
-    
-# main program    
+
+
 def main(args):
-    action, num_images, min_w, min_h, pct_train, augment, split, combine, include_orig, shuffle, hed_model_path = args.action, args.num_images, args.min_dim, args.min_dim, args.pct_train, args.augment, args.split, args.combine, args.include_orig, args.shuffle, args.hed_model_path
-
+    input_src, shuffle, max_num_images, min_w, min_h = args.input_src, args.shuffle, args.max_num_images, args.min_dim, args.min_dim
+    output_dir, out_w, out_h, pct_test, save_mode, save_ext = args.output_dir, args.w, args.h, args.pct_test, args.save_mode, args.save_ext
+    num_per, frac, frac_vary, max_ang_rot, max_stretch, centered = args.num_per, args.frac, args.frac_vary, args.max_ang_rot, args.max_stretch, args.centered
+    action, target_face_image, face_crop, face_crop_lerp, landmarks_path, hed_model_path = args.action, args.target_face_image, args.face_crop, args.face_crop_lerp, args.landmarks_path, args.hed_model_path
+    
+    os.system('rm -rf %s'%output_dir)
+    
     # get list of actions
     actions = action.split(',')
     if False in [a in allowable_actions for a in actions]:
         raise Exception('one of your actions does not exist')
-    
-    # I/O directoris
-    input_dir, output_dir = args.input_dir, args.output_dir
-    output_train_dir = join(output_dir, 'train')
-    output_test_dir = join(output_dir, 'test')
-    output_trainA_dir = join(output_dir, 'train/train_A')
-    output_trainB_dir = join(output_dir, 'train/train_B')
-    output_testA_dir = join(output_dir, 'test/test_A')
-    output_testB_dir = join(output_dir, 'test/test_B')
 
-    # which directories to make
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
-    
-    if split:
-        try_make_dir(output_train_dir)
-        try_make_dir(output_test_dir)
+    # initialize face_processing if needed
+    if 'face' in actions:
+        initialize_face_processing(landmarks_path)
+        target_encodings = get_encodings(target_face_image) if target_face_image else None
+
+    # setup output directories
+    trainA_dir, trainB_dir, testA_dir, testB_dir = setup_output_dirs(output_dir, save_mode, pct_test>0) 
+
+    # initialize input 
+    ext = os.path.splitext(input_src)[1]
+    is_movie = ext.lower() in ['.mp4','.mov','.avi']
+    if is_movie:
+        cap = cv2.VideoCapture(input_src)
+        fps = video.FPS().start()
+        num_images = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        pct_frames = list(np.linspace(0, 1, num_images))
+        all_frames = get_frame_indexes(max_num_images, num_images, shuffle)
+
+    else:
+        images = [f for f in os.listdir(input_src) if os.path.isfile(os.path.join(input_src, f)) ]
+        num_images = len(images)
+        all_frames = get_frame_indexes(max_num_images, num_images, shuffle)
+
+    # training/test split
+    training = [1] * len(all_frames) * num_per
+    if pct_test > 0:
+        n_test = int(len(all_frames) * num_per * pct_test)
+        test_per = 1.0 / pct_test
+        test_idx = [int(test_per * (i+1) - 1) for i in range(n_test)]
+        for t in test_idx:
+            training[t] = 0
+
+    # iterate through each input
+    for idx_frame in tqdm(all_frames):
         
-    if include_orig and combine==False:
-        try_make_dir(output_trainA_dir)
-        try_make_dir(output_trainB_dir)
-        if pct_train < 1.0:
-            try_make_dir(output_testA_dir)
-            try_make_dir(output_testB_dir)
-    
-    # cycle through input images
-    images = [f for f in listdir(input_dir) if isfile(join(input_dir, f)) ]
-    sort_order = sorted(range(min(num_images if num_images is not None else 1e8, len(images))))
-    if shuffle:
-        sort_order = sorted(sample(range(len(images)), min(num_images if num_images is not None else 1e8, len(images))))
-    images = [images[i] for i in sort_order]
-    
-    # if to split into training/test flders
-    training = [1] * len(images)
-    if split:
-        n_train = int(len(images) * args.pct_train)
-        training[n_train:] = [0] * (len(images) - n_train)
-    
-    for img_idx, img_path in enumerate(tqdm(images)):
+        if is_movie:
+            pct_frame = pct_frames[idx_frame]
+            frame = int(pct_frame * num_images)
+            cap.set(1, frame);
+            ret, img = cap.read()
+            frame_name = 'frame%06d' % frame
+            img = cv2pil(img)
+        else:
+            img_path = images[idx_frame]
+            frame_name = os.path.splitext(img_path)[0]
+            img = Image.open(os.path.join(input_src, img_path)).convert("RGB")
 
-        print('open %d/%d : %s' % (img_idx, len(images), join(input_dir, img_path)))
-        ext = 'png' #img_path.split('.')[-1]
-        img0 = Image.open(join(input_dir, img_path)).convert("RGB")
-
-        if img0.width < min_w or img0.height < min_h:
-            #print('skipping, too small (%d x %d)' % (img0.width, img0.height))
+        # skip images which are too small
+        if img.width < min_w or img.height < min_h:
             continue
 
-        imgs0 = []
-        if augment:
-            imgs0 = augmentation(img0, args)
-        else:   
-            imgs0 = [img0]
+        # first crop around face if requested
+        if face_crop is not None:
+            jx, jy, jw, jh = get_crop_around_face(img, target_encodings, out_w/out_h, face_crop, face_crop_lerp)
+            img = img.crop((jx, jy, jx + jw, jy + jh))
 
-        imgs = []
-        for img0 in tqdm(imgs0):            
-
+        # preprocess/augment and produce input images
+        imgs0, imgs1 = augmentation(img, num_per, out_w, out_h, frac, frac_vary, max_ang_rot, max_stretch, centered), []
+        
+        # process each input image to make output
+        for img0 in imgs0:
             img = img0
-            
             for a in actions:
                 if a == 'segment':
                     img = segment(img)
@@ -299,33 +199,36 @@ def main(args):
                 elif a == 'trace':
                     img = trace(img)
                 elif a == 'hed':
-                    img = run_hed(img, hed_model_path)
+                    img = hed_processing.run_hed(img, hed_model_path)
                 elif a == 'simplify':
                     img = simplify(img, hed_model_path)
+                elif a == 'face':
+                    img = extract_face(img, target_encodings)
                 elif a == 'none' or a == '':
                     pass
+            imgs1.append(img)
+        
+        # save the images
+        for i, (img0, img1) in enumerate(zip(imgs0, imgs1)):
+            out_name = 'f%05d%s_%s.%s' % (idx_frame, '_%02d'%i if num_per>1 else '', frame_name, save_ext)
+            is_train = training[num_per * idx_frame + i]
 
-            imgs.append(img)
-
-        for i, (img0, img1) in enumerate(zip(imgs0, imgs)):
-            out_dir = join(output_dir, 'train' if training[img_idx]==1 else 'test') if split else output_dir
-            out_dir_orig = join(output_dir, 'train/train_B' if training[img_idx]==1 else 'test/test_B') if split else output_dir
-            if include_orig and combine==False:
-                out_dir = join(output_dir, 'train/train_A' if training[img_idx]==1 else 'test/test_A') if split else output_dir
-            out_img = '%05d_%s_%d.%s' % (img_idx, ''.join(img_path.split('.')[0:-1]), i, ext)
-            if combine:                
-                img_f = Image.new('RGB', (args.w * 2, args.h))     
-                img_f.paste(img0.convert('RGB'), (0, 0))
-                img_f.paste(img1.convert('RGB'), (args.w, 0))
-                img_f.save(join(out_dir, out_img))
-            elif include_orig:
-                img1 = img1.convert('RGB')
-                img1.save(join(out_dir, out_img))
-                img0 = img0.convert('RGB')
-                img0.save(join(out_dir_orig, out_img))
+            if save_mode == 'combined':
+                output_dir = trainA_dir if is_train else testA_dir
+                img2 = Image.new('RGB', (out_w * 2, out_h))     
+                img2.paste(img1.convert('RGB'), (0, 0))
+                img2.paste(img0.convert('RGB'), (out_w, 0))
+                img2.save(os.path.join(output_dir, out_name))
+                
             else:
-                img1 = img1.convert('RGB')
-                img1.save(join(out_dir, out_img))
+                outputA_dir = trainA_dir if is_train else testA_dir
+                img1.convert('RGB').save(os.path.join(outputA_dir, out_name))
+                if save_mode == 'split':
+                    outputB_dir = trainB_dir if is_train else testB_dir
+                    img0.convert('RGB').save(os.path.join(outputB_dir, out_name))
+            
+            #plt.figure(figsize=(20,10))
+            #plt.imshow(np.concatenate([img0, img1], axis=1))
 
 
 if __name__ == '__main__':
