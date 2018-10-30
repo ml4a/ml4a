@@ -7,3 +7,4 @@ imutils
 git+https://github.com/tensorpack/tensorpack
 scikit-image
 dlib
+face_recognition
