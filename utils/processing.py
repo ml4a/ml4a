@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw
 from skimage.segmentation import felzenszwalb
 from skimage.morphology import skeletonize, remove_small_objects
 from skimage.util import invert
+from tqdm import tqdm
 import cv2
 import hed_processing
 
