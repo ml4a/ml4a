@@ -161,7 +161,7 @@ def main(args):
             training[t] = 0
 
     # iterate through each input
-    for idx_frame in tqdm(all_frames):
+    for k, idx_frame in tqdm(enumerate(all_frames)):
         
         if is_movie:
             pct_frame = pct_frames[idx_frame]
@@ -211,7 +211,7 @@ def main(args):
         # save the images
         for i, (img0, img1) in enumerate(zip(imgs0, imgs1)):
             out_name = 'f%05d%s_%s.%s' % (idx_frame, '_%02d'%i if num_per>1 else '', frame_name, save_ext)
-            is_train = training[num_per * idx_frame + i]
+            is_train = training[num_per * k + i]
 
             if save_mode == 'combined':
                 output_dir = trainA_dir if is_train else testA_dir
