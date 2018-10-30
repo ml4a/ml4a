@@ -57,9 +57,15 @@ Processing the input image
 
 #### Install
 
-    pip install --upgrade git+https://github.com/tensorpack/tensorpack.git
-    wget http://models.tensorpack.com/HED/HED_reproduced.npz ../data/.`
+If you use the HED processing, you need to install tensorpack and download the model.
 
+    pip install --upgrade git+https://github.com/tensorpack/tensorpack.git
+    wget http://models.tensorpack.com/HED/HED_reproduced.npz -P ../data/.
+    
+If you plan to do face extraction, you need the landmarks file
+
+    curl -L -o ../data/shape_predictor_68_face_landmarks.dat.bz2 --progress-bar https://sourceforge.net/projects/dclib/files/dlib/v18.10/shape_predictor_68_face_landmarks.dat.bz2
+    bzip2 -d ../data/shape_predictor_68_face_landmarks.dat.bz2
 
 #### Example
 
