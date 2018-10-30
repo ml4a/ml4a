@@ -6,4 +6,4 @@ opencv-python
 imutils
 git+https://github.com/tensorpack/tensorpack
 scikit-image
-
+dlib
