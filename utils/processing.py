@@ -154,7 +154,7 @@ def crop_rot_resize(img, frac, w2, h2, ang, stretch, centered):
     x_crop, y_crop = (w1 - w1_crop - 1) * xr, (h1 - h1_crop - 1) * yr
     h1_crop, w1_crop, y_crop, x_crop = int(h1_crop), int(w1_crop), int(y_crop), int(x_crop)
     img_crop = img.crop((x_crop, y_crop, x_crop+w1_crop, y_crop+h1_crop))
-    img_resize = img_crop.resize((w2, h2))
+    img_resize = img_crop.resize((w2, h2), resample=Image.BICUBIC)
     
     return img_resize
 
