@@ -121,7 +121,7 @@ def main(args):
     num_per, frac, frac_vary, max_ang_rot, max_stretch, centered = args.num_per, args.frac, args.frac_vary, args.max_ang_rot, args.max_stretch, args.centered
     action, target_face_image, face_crop, face_crop_lerp, landmarks_path, hed_model_path = args.action, args.target_face_image, args.face_crop, args.face_crop_lerp, args.landmarks_path, args.hed_model_path
     
-    os.system('rm -rf %s'%output_dir)
+    #os.system('rm -rf %s'%output_dir)
     
     # get list of actions
     actions = action.split(',')
@@ -147,7 +147,7 @@ def main(args):
         all_frames = get_frame_indexes(max_num_images, num_images, shuffle)
 
     else:
-        images = [f for f in os.listdir(input_src) if os.path.isfile(os.path.join(input_src, f)) ]
+        images = sorted([f for f in os.listdir(input_src) if os.path.isfile(os.path.join(input_src, f)) ])
         num_images = len(images)
         all_frames = get_frame_indexes(max_num_images, num_images, shuffle)
 
