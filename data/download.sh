@@ -19,6 +19,6 @@ rm drums.rar
 
 # drum samples
 echo "Downloading Reuters dataset for text retrieval notebook"
-curl -L -o Reuters21578-Apte-90Cat.tar.gz --progress-bar wget http://disi.unitn.it/moschitti/corpora/Reuters21578-Apte-90Cat.tar.gz
+curl -L -o Reuters21578-Apte-90Cat.tar.gz --progress-bar http://disi.unitn.it/moschitti/corpora/Reuters21578-Apte-90Cat.tar.gz
 tar -xzf Reuters21578-Apte-90Cat.tar.gz
 rm Reuters21578-Apte-90Cat.tar.gz
