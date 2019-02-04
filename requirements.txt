@@ -4,7 +4,8 @@ numpy
 Pillow
 opencv-python
 imutils
-git+https://github.com/tensorpack/tensorpack
 scikit-image
 dlib
 face_recognition
+git+https://github.com/tensorpack/tensorpack
+bs4
