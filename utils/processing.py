@@ -7,7 +7,6 @@ from skimage.morphology import skeletonize, remove_small_objects
 from skimage.util import invert
 from tqdm import tqdm
 import cv2
-import hed_processing
 
 
 def cv2pil(cv2_img):
@@ -105,6 +104,7 @@ def trace(img):
 
 
 def simplify(img, hed_model_path):
+    import hed_processing
     w, h = img.width, img.height
     size_thresh = 0.001 * w * h
     img = pil2cv(img)

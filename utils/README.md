@@ -32,6 +32,8 @@ Processing the input image
 * `--target_face_image` if doing face extraction, use this image to specify a target face (if None, then it takes first face it can find)
 * `--hed_model_path` path to model file for holistic-edge-detection (HED) processing default='../data/HED_reproduced.npz'
 * `--landmarks_path` path to dlib face landmarks file (default='../data/shape_predictor_68_face_landmarks.dat')
+* `--photosketch_path` path to PhotoSketch repo (default='../tools/PhotoSketch/')
+* `--photosketch_model_path` path to PhotoSketch pretrained model (default='../tools/PhotoSketch/pretrained')
 
 
 #### Install
@@ -45,6 +47,9 @@ If you plan to do face extraction, you need the landmarks file
 
     curl -L -o ../data/shape_predictor_68_face_landmarks.dat.bz2 --progress-bar https://sourceforge.net/projects/dclib/files/dlib/v18.10/shape_predictor_68_face_landmarks.dat.bz2
     bzip2 -d ../data/shape_predictor_68_face_landmarks.dat.bz2
+
+If you want to use PhotoSketch, clone [PhotoSketch](https://github.com/mtli/PhotoSketch) (or this [fork](://github.com/genekogan/PhotoSketch)) and follow instructions to get the pre-trained model.
+
 
 #### Example
 

@@ -1,4 +1,5 @@
 import os
+import sys
 from random import random, sample
 import argparse
 from tqdm import tqdm
@@ -8,12 +9,8 @@ from PIL import Image, ImageDraw
 from imutils import video
 import cv2
 
-import hed_processing
-from processing import *
-from face_processing import *
 
-
-allowable_actions = ['none', 'quantize', 'trace', 'hed', 'segment', 'simplify', 'face']
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'photosketch', 'segment', 'simplify', 'face']
 
 
 # input, output
@@ -46,6 +43,21 @@ parser.add_argument("--face_crop_lerp", type=float, help="smoothing parameter fo
 # data files
 parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduced.npz', help="model path for HED")
 parser.add_argument("--landmarks_path", type=str, default='../data/shape_predictor_68_face_landmarks.dat', help="path to face landmarks file")
+parser.add_argument("--photosketch_path", type=str, default='../tools/PhotoSketch', help="path to PhotoSketch (if using it)")
+parser.add_argument("--photosketch_model_path", type=str, default='../tools/PhotoSketch/pretrained', help="path to PhotoSketch checkpoint directory (if using it)")
+
+args = parser.parse_args()
+
+
+# import additional helpers as needed
+if 'hed' in args.action.split(' ') or 'simplify' in args.action.split(' '):
+    import hed_processing
+if 'photosketch' in args.action.split(' '):
+    sys.path.append(args.photosketch_path)
+    import photosketch_processing
+if 'face' in args.action.split(' '):
+    from face_processing import *
+from processing import *
 
 
 
@@ -133,6 +145,9 @@ def main(args):
         initialize_face_processing(landmarks_path)
         target_encodings = get_encodings(target_face_image) if target_face_image else None
 
+    if 'photosketch' in actions:
+        photosketch_processing.setup(args.photosketch_model_path)
+        
     # setup output directories
     trainA_dir, trainB_dir, testA_dir, testB_dir = setup_output_dirs(output_dir, save_mode, pct_test>0) 
 
@@ -200,6 +215,8 @@ def main(args):
                     img = trace(img)
                 elif a == 'hed':
                     img = hed_processing.run_hed(img, hed_model_path)
+                elif a == 'photosketch':
+                    img = photosketch_processing.sketch(img)
                 elif a == 'simplify':
                     img = simplify(img, hed_model_path)
                 elif a == 'face':
@@ -232,5 +249,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
+    #args = parser.parse_args()
     main(args)
