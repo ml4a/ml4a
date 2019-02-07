@@ -1,21 +1,21 @@
 
 # Dataset-utils
     
-Input options
+Input options:
 
 * `--input_src` either a video (mp4) or directory of images to use as the input source
 * `--max_num_images` cap number of images to use as input (if None, no cap, default None)
 * `--shuffle` shuffle the input images (true) or go in order (false)
 * `--min_dim` skip any image whose width or height are less (default 0)
 
-Output options
+Output options:
 
 * `--output_dir` directory to put resulting images into
 * `--pct_test` fraction of output images (0-1) to reserve for testing set (default 0)
 * `--save_mode` "split": separate directories for input/output, "combined": concatenate horizontally, "output_only": save only the resulting outputs
 * `--save_ext` save jpg or png
 
-Pre-processing and augmentation options
+Pre-processing and augmentation options:
 
 * `--w` output width (default 256)
 * `--h` output height (default 256)
@@ -26,14 +26,19 @@ Pre-processing and augmentation options
 * `--max_stretch` stretch the image randomly up to "max_stretch" (default 0, no stretch)
 * `--centered` take center crop (if false, take random crop, default false)
 
-Processing the input image
+Processing the input image:
 
-* `--action` a comma-separated list of processing actions from ('quantize', 'trace', 'hed', 'segment', 'simplify', 'face')
+* `--action` a comma-separated list of processing actions from ('quantize', 'trace', 'hed', 'sketch', 'upsample', 'segment', 'simplify', 'face')
 * `--target_face_image` if doing face extraction, use this image to specify a target face (if None, then it takes first face it can find)
 * `--hed_model_path` path to model file for holistic-edge-detection (HED) processing default='../data/HED_reproduced.npz'
 * `--landmarks_path` path to dlib face landmarks file (default='../data/shape_predictor_68_face_landmarks.dat')
+
+If using either PhotoSketch (action=sketch) or ESRGAN (action=upsample), which use external repositories:
+
 * `--photosketch_path` path to PhotoSketch repo (default='../tools/PhotoSketch/')
 * `--photosketch_model_path` path to PhotoSketch pretrained model (default='../tools/PhotoSketch/pretrained')
+* `--esrgan_path` path to ESRGAN repo (default='../tools/ESRGAN/')
+* `--esrgan_model_path` path to ESRGAN pretrained model (default='../tools/ESRGAN/models')
 
 
 #### Install

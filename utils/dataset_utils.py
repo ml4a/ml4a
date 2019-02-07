@@ -10,7 +10,7 @@ from imutils import video
 import cv2
 
 
-allowable_actions = ['none', 'quantize', 'trace', 'hed', 'photosketch', 'segment', 'simplify', 'face']
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'sketch', 'segment', 'simplify', 'face', 'upsample']
 
 
 # input, output
@@ -45,6 +45,8 @@ parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduce
 parser.add_argument("--landmarks_path", type=str, default='../data/shape_predictor_68_face_landmarks.dat', help="path to face landmarks file")
 parser.add_argument("--photosketch_path", type=str, default='../tools/PhotoSketch', help="path to PhotoSketch (if using it)")
 parser.add_argument("--photosketch_model_path", type=str, default='../tools/PhotoSketch/pretrained', help="path to PhotoSketch checkpoint directory (if using it)")
+parser.add_argument("--esrgan_path", type=str, default='../tools/ESRGAN', help="path to ESRGAN (if using it)")
+parser.add_argument("--esrgan_model_path", type=str, default='../tools/ESRGAN/models', help="path to ESRGAN checkpoint directory (if using it)")
 
 args = parser.parse_args()
 
@@ -52,9 +54,12 @@ args = parser.parse_args()
 # import additional helpers as needed
 if 'hed' in args.action.split(' ') or 'simplify' in args.action.split(' '):
     import hed_processing
-if 'photosketch' in args.action.split(' '):
+if 'sketch' in args.action.split(' '):
     sys.path.append(args.photosketch_path)
     import photosketch_processing
+if 'upsample' in args.action.split(' '):
+    sys.path.append(args.esrgan_path)
+    import esrgan_processing
 if 'face' in args.action.split(' '):
     from face_processing import *
 from processing import *
@@ -145,9 +150,14 @@ def main(args):
         initialize_face_processing(landmarks_path)
         target_encodings = get_encodings(target_face_image) if target_face_image else None
 
-    if 'photosketch' in actions:
+    # initialize photosketch if needed
+    if 'sketch' in actions:
         photosketch_processing.setup(args.photosketch_model_path)
-        
+
+    # initialize esrgan if needed
+    if 'upsample' in actions:
+        esrgan_processing.setup(args.esrgan_model_path)
+
     # setup output directories
     trainA_dir, trainB_dir, testA_dir, testB_dir = setup_output_dirs(output_dir, save_mode, pct_test>0) 
 
@@ -215,12 +225,14 @@ def main(args):
                     img = trace(img)
                 elif a == 'hed':
                     img = hed_processing.run_hed(img, hed_model_path)
-                elif a == 'photosketch':
+                elif a == 'sketch':
                     img = photosketch_processing.sketch(img)
                 elif a == 'simplify':
                     img = simplify(img, hed_model_path)
                 elif a == 'face':
                     img = extract_face(img, target_encodings)
+                elif a == 'upsample':
+                    img = esrgan_processing.upsample(img)
                 elif a == 'none' or a == '':
                     pass
             imgs1.append(img)
