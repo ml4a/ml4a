@@ -34,7 +34,6 @@ def setup(model_dir):
 def upsample(img):
     img = pil2cv(img) # cv2.imread(image_path)
     img = img * 1.0 / 255
-    z = np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))
     img = torch.from_numpy(np.transpose(img, (2, 0, 1))).float()    
     img_LR = img.unsqueeze(0)
     img_LR = img_LR.to(device)
