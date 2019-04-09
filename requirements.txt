@@ -7,5 +7,7 @@ imutils
 scikit-image
 dlib
 face_recognition
+tensorflow-gpu
 git+https://github.com/tensorpack/tensorpack
 bs4
+lxml

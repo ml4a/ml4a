@@ -5,12 +5,12 @@ import argparse
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFile
 from imutils import video
 import cv2
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-
-allowable_actions = ['none', 'quantize', 'trace', 'hed', 'sketch', 'segment', 'simplify', 'face', 'upsample']
+allowable_actions = ['none', 'quantize', 'trace', 'hed', 'sketch', 'segment', 'simplify', 'face', 'upsample', 'sss']
 
 
 # input, output
@@ -19,27 +19,28 @@ parser.add_argument("--input_src", help="input: directory of input images or mov
 parser.add_argument("--max_num_images", type=int, help="maximum number of images to take (omit to use all)", default=None)
 parser.add_argument("--shuffle", action="store_true", help="shuffle input images")
 parser.add_argument("--min_dim", type=int, help="minimum width/height to allow for images", default=0)
-parser.add_argument("--output_dir", help="where to put output images")
+parser.add_argument("--max_dim", type=int, help="maximum width/height to allow for images", default=1e8)
+parser.add_argument("--output_dir", help="where to put output images (if \"None\" simply overwrite input)")
 parser.add_argument("--pct_test", type=float, help="percentage that goes to test set (default 0)", default=0)
 parser.add_argument("--save_mode", help="save output combined (pix2pix-style), split into directories, or just output", choices=['split','combined','output_only'], default='output_only')
 parser.add_argument("--save_ext", help="image save extension (jpg/png)", choices=['jpg','png'], default='png')
 
 # augmentation
-parser.add_argument("--w", type=int, help="output image width", default=256)
-parser.add_argument("--h", type=int, help="output image height", default=256)
+parser.add_argument("--w", type=int, help="output image width (None means leave unchanged)", default=None)
+parser.add_argument("--h", type=int, help="output image height (None means leave unchanged)", default=None)
 parser.add_argument("--num_per", type=int, help="how many copies of original, augmented", default=1)
 parser.add_argument("--frac", type=float, help="cropping ratio before resizing", default=1.0)
 parser.add_argument("--frac_vary", type=float, help="cropping ratio vary", default=0.0)
 parser.add_argument("--max_ang_rot", type=float, help="max rotation angle (degrees)", default=0)
 parser.add_argument("--max_stretch", type=float, help="maximum stretching factor (0=none)", default=0)
 parser.add_argument("--centered", action="store_true", help="to use centered crops instead of random ones")
-    
+
 # actions
 parser.add_argument("--action", type=str, help="comma-separated: lis of actions from {%s} to take, e.g. trace,hed" % ','.join(allowable_actions), required=True, default="")
 parser.add_argument("--target_face_image", type=str, help="image of target face to extract (if None, extract first found one)", default=None)
 parser.add_argument("--face_crop", type=float, help="crop around target face first, with face fitting this fraction of the crop (default None, don't crop)", default=None)
 parser.add_argument("--face_crop_lerp", type=float, help="smoothing parameter for shifting around lerp (default 1, no lerp)", default=1.0)
-               
+
 # data files
 parser.add_argument("--hed_model_path", type=str, default='../data/HED_reproduced.npz', help="model path for HED")
 parser.add_argument("--landmarks_path", type=str, default='../data/shape_predictor_68_face_landmarks.dat', help="path to face landmarks file")
@@ -47,21 +48,26 @@ parser.add_argument("--photosketch_path", type=str, default='../tools/PhotoSketc
 parser.add_argument("--photosketch_model_path", type=str, default='../tools/PhotoSketch/pretrained', help="path to PhotoSketch checkpoint directory (if using it)")
 parser.add_argument("--esrgan_path", type=str, default='../tools/ESRGAN', help="path to ESRGAN (if using it)")
 parser.add_argument("--esrgan_model_path", type=str, default='../tools/ESRGAN/models', help="path to ESRGAN checkpoint directory (if using it)")
+parser.add_argument("--sss_path", type=str, default='../tools/SIGGRAPH18SSS', help="path to SSS (if using it)")
+parser.add_argument("--sss_model_path", type=str, default='../tools/SIGGRAPH18SSS/model', help="path to SSS checkpoint directory (if using it)")
 
 args = parser.parse_args()
 
 
 # import additional helpers as needed
-if 'hed' in args.action.split(' ') or 'simplify' in args.action.split(' '):
+if 'hed' in args.action.split(',') or 'simplify' in args.action.split(','):
     import hed_processing
-if 'sketch' in args.action.split(' '):
+if 'sketch' in args.action.split(','):
     sys.path.append(args.photosketch_path)
     import photosketch_processing
-if 'upsample' in args.action.split(' '):
+if 'upsample' in args.action.split(','):
     sys.path.append(args.esrgan_path)
     import esrgan_processing
-if 'face' in args.action.split(' '):
+if 'face' in args.action.split(','):
     from face_processing import *
+if 'sss' in args.action.split(','):
+    sys.path.append(args.sss_path)
+    import sss_processing
 from processing import *
 
 
@@ -92,13 +98,13 @@ def setup_output_dirs(output_dir, save_mode, include_test):
         train_dir = output_dir
         trainA_dir = os.path.join(output_dir, 'train_A')
         trainB_dir = os.path.join(output_dir, 'train_B')
-    
+
     else:
         train_dir = output_dir
         trainA_dir = output_dir
         trainB_dir = output_dir
 
-    try_make_dir(output_dir)   
+    try_make_dir(output_dir)
 
     try_make_dir(train_dir)
     try_make_dir(trainA_dir)
@@ -108,7 +114,7 @@ def setup_output_dirs(output_dir, save_mode, include_test):
         try_make_dir(test_dir)
         try_make_dir(testA_dir)
         try_make_dir(testB_dir)
-    
+
     return trainA_dir, trainB_dir, testA_dir, testB_dir
 
 
@@ -133,13 +139,13 @@ def augmentation(img, num_per, out_w, out_h, frac, frac_vary, max_ang_rot, max_s
 
 
 def main(args):
-    input_src, shuffle, max_num_images, min_w, min_h = args.input_src, args.shuffle, args.max_num_images, args.min_dim, args.min_dim
+    input_src, shuffle, max_num_images, min_w, min_h, max_w, max_h = args.input_src, args.shuffle, args.max_num_images, args.min_dim, args.min_dim, args.max_dim, args.max_dim
     output_dir, out_w, out_h, pct_test, save_mode, save_ext = args.output_dir, args.w, args.h, args.pct_test, args.save_mode, args.save_ext
     num_per, frac, frac_vary, max_ang_rot, max_stretch, centered = args.num_per, args.frac, args.frac_vary, args.max_ang_rot, args.max_stretch, args.centered
     action, target_face_image, face_crop, face_crop_lerp, landmarks_path, hed_model_path = args.action, args.target_face_image, args.face_crop, args.face_crop_lerp, args.landmarks_path, args.hed_model_path
-    
+
     #os.system('rm -rf %s'%output_dir)
-    
+
     # get list of actions
     actions = action.split(',')
     if False in [a in allowable_actions for a in actions]:
@@ -158,10 +164,15 @@ def main(args):
     if 'upsample' in actions:
         esrgan_processing.setup(args.esrgan_model_path)
 
-    # setup output directories
-    trainA_dir, trainB_dir, testA_dir, testB_dir = setup_output_dirs(output_dir, save_mode, pct_test>0) 
+    # initialize SSS if needed
+    if 'sss' in actions:
+        sss_processing.setup(args.sss_model_path)
 
-    # initialize input 
+    # setup output directories
+    if output_dir != 'None':
+        trainA_dir, trainB_dir, testA_dir, testB_dir = setup_output_dirs(output_dir, save_mode, pct_test>0)
+
+    # initialize input
     ext = os.path.splitext(input_src)[1]
     is_movie = ext.lower() in ['.mp4','.mov','.avi']
     if is_movie:
@@ -186,8 +197,8 @@ def main(args):
             training[t] = 0
 
     # iterate through each input
+    print("Iterating through %d input images" % len(all_frames))
     for k, idx_frame in tqdm(enumerate(all_frames)):
-        
         if is_movie:
             pct_frame = pct_frames[idx_frame]
             frame = int(pct_frame * num_images)
@@ -198,10 +209,13 @@ def main(args):
         else:
             img_path = images[idx_frame]
             frame_name = os.path.splitext(img_path)[0]
-            img = Image.open(os.path.join(input_src, img_path)).convert("RGB")
+            full_image_path = os.path.join(input_src, img_path)
+            img = Image.open(full_image_path).convert("RGB")
 
-        # skip images which are too small
+        # skip images which are too small or too big
         if img.width < min_w or img.height < min_h:
+            continue
+        if img.width > max_w or img.height > max_h:
             continue
 
         # first crop around face if requested
@@ -211,7 +225,7 @@ def main(args):
 
         # preprocess/augment and produce input images
         imgs0, imgs1 = augmentation(img, num_per, out_w, out_h, frac, frac_vary, max_ang_rot, max_stretch, centered), []
-        
+
         # process each input image to make output
         for img0 in imgs0:
             img = img0
@@ -231,12 +245,15 @@ def main(args):
                     img = simplify(img, hed_model_path)
                 elif a == 'face':
                     img = extract_face(img, target_encodings)
+                elif a == 'sss':
+                    img = sss_processing.run_sss(img)
                 elif a == 'upsample':
                     img = esrgan_processing.upsample(img)
+                    img = img.resize((int(img.width/2), int(img.height/2)), resample=Image.BICUBIC)  # go from 4x to 2x
                 elif a == 'none' or a == '':
                     pass
             imgs1.append(img)
-        
+
         # save the images
         for i, (img0, img1) in enumerate(zip(imgs0, imgs1)):
             out_name = 'f%05d%s_%s.%s' % (idx_frame, '_%02d'%i if num_per>1 else '', frame_name, save_ext)
@@ -244,18 +261,22 @@ def main(args):
 
             if save_mode == 'combined':
                 output_dir = trainA_dir if is_train else testA_dir
-                img2 = Image.new('RGB', (out_w * 2, out_h))     
+                img2 = Image.new('RGB', (out_w * 2, out_h))
                 img2.paste(img1.convert('RGB'), (0, 0))
                 img2.paste(img0.convert('RGB'), (out_w, 0))
-                img2.save(os.path.join(output_dir, out_name))
-                
+                img2.save(os.path.join(output_dir, out_name), quality=97)
+
             else:
-                outputA_dir = trainA_dir if is_train else testA_dir
-                img1.convert('RGB').save(os.path.join(outputA_dir, out_name))
-                if save_mode == 'split':
-                    outputB_dir = trainB_dir if is_train else testB_dir
-                    img0.convert('RGB').save(os.path.join(outputB_dir, out_name))
-            
+
+                if output_dir == 'None':
+                    img1.convert('RGB').save(full_image_path, quality=97)
+                else:
+                    outputA_dir = trainA_dir if is_train else testA_dir
+                    img1.convert('RGB').save(os.path.join(outputA_dir, out_name), quality=97)
+                    if save_mode == 'split':
+                        outputB_dir = trainB_dir if is_train else testB_dir
+                        img0.convert('RGB').save(os.path.join(outputB_dir, out_name), quality=97)
+
             #plt.figure(figsize=(20,10))
             #plt.imshow(np.concatenate([img0, img1], axis=1))
 

@@ -128,6 +128,11 @@ def upsample(img, w2, h2):
 
     
 def crop_rot_resize(img, frac, w2, h2, ang, stretch, centered):
+    if w2 is None:
+        w2 = img.width
+    if h2 is None:
+        h2 = img.height
+    
     if img.height < h2 or img.width < w2:
         img = upsample(img, w2, h2)
     
