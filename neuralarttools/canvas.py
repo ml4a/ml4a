@@ -9,6 +9,9 @@ from moviepy.editor import *
 from noise import pnoise2, snoise2
 
 
+from .util import *
+
+
 
 def process_arguments(args):
     parser = argparse.ArgumentParser(description='modifier')
@@ -25,29 +28,41 @@ def display(img):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     IPython.display.display(img)
 
-    
-def view_canvas(canvas, h, w, numframes, img=None, animate=False, fps=30):
+
+def get_canvas_frames(canvas, size, numframes, img=None):
+    w, h = size
     if img is None and type(img) == str:
         img = load_image(img, (w, h))
     elif img is None:
-        img = make_image_grid(w, h)
-    frames = []
-    for i in range(numframes):
-        if animate:
-            frames.append(np.array(img).astype(np.uint8))
-        else:
-            display(img)
-        img = modify_canvas(img, canvas)
-    if animate:
-        clip = ImageSequenceClip(frames, fps=fps)
-        disp_clip = clip.ipython_display()
-        os.system('rm __temp__.mp4')
-        return disp_clip
+        img = make_image_grid((w, h))
     else:
+        img = resize(img, (w, h))
+    frames = []
+    for f in range(numframes):
+        frames.append(np.array(img).astype(np.uint8))
+        img = modify_canvas(img, canvas)
+    return frames
+    
+
+def view_canvas(canvas, size, numframes, img=None, animate=False, fps=30):
+    frames = get_canvas_frames(canvas, size, numframes, img)
+    if animate:
+        return frames_to_movie(frames, fps=fps)
+    else: 
+        for frame in frames:
+            display(frame)
         return None
 
     
-def make_image_grid(w, h, spacing=15, thickness=3):
+def save_canvas_video(filename, canvas, size, numframes, img, fps=30):
+    frames = get_canvas_frames(canvas, size, numframes, img)
+    clip = ImageSequenceClip(frames, fps=fps)
+    clip.write_videofile(filename, fps=fps)
+    IPython.display.clear_output()
+
+    
+def make_image_grid(size, spacing=15, thickness=3):
+    w, h = size
     img = np.zeros((h, w, 3))
     for off in range(thickness):
         img[:,range(off, w, spacing),0] = 255
@@ -107,6 +122,20 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
     
     # calculate all th index transformations
     for idxm, mod in enumerate(mods):
+
+        mod['center'] = mod['center'] if 'center' in mod else (0.5, 0.5)
+        mod['shift'] = mod['shift'] if 'shift' in mod else (0.0, 0.0)
+        mod['stretch'] = mod['stretch'] if 'stretch' in mod else (1.0, 1.0)
+        mod['zoom'] = mod['zoom'] if 'zoom' in mod else 1.0
+        mod['expand'] = mod['expand'] if 'expand' in mod else 0.0
+        mod['rot_const'] = mod['rot_const'] if 'rot_const' in mod else 0.0
+        mod['rot_ang'] = mod['rot_ang'] if 'rot_ang' in mod else 0.0
+        mod['rot_dst'] = mod['rot_dst'] if 'rot_dst' in mod else 0.0
+        mod['spiral_margin'] = mod['spiral_margin'] if 'spiral_margin' in mod else 0.0
+        mod['spiral_periods'] = mod['spiral_periods'] if 'spiral_periods' in mod else 0
+        mod['noise_rate'] = mod['noise_rate'] if 'noise_rate' in mod else (0.0, 0.0)
+        mod['noise_margin'] = mod['noise_margin'] if 'noise_margin' in mod else (0.0, 0.0)
+
         shift, stretch = mod['shift'], mod['stretch']
         zoom, expand = mod['zoom'], mod['expand']
         rot_const, rot_ang, rot_dst = mod['rot_const'], mod['rot_ang'], mod['rot_dst']

@@ -1,43 +1,24 @@
-#from __future__ import print_function
 import math
-#from random import random
-#import os
-from os import listdir
-from os.path import isfile, join
-#import copy
+import os
 import itertools
-#from enum import Enum
-#from io import BytesIO
-from moviepy.editor import *
+#from moviepy.editor import *
 import IPython
-#from IPython.display import clear_output, Image, display, HTML
-#import PIL.Image
-#from PIL import Image
 import numpy as np
-#import scipy.misc
 import sklearn.cluster
 import cv2
 
 from .canvas import *
 from .util import *
 
-#from lapnorm import *
-
-
 default_color_labels = [
-    [255,0,0],     [0,255,255],   [0,255,0],
-    [255,0,255],   [0,0,255],     [255,255,0],
+    [255,0,0],     [0, 255, 0],   [0,0,255],
+    [255,255,0],   [255,0,255],   [255,255,0],
     [0,0,0],       [255,255,255], [64,0,192],
     [192,64,0],    [0,192,64],    [192,0,64], 
     [64,192,0],    [0,64,192]
 ]
 
 
-# def showarray(a, fmt='jpeg'):
-#     a = np.uint8(np.clip(a, 0, 1)*255)
-#     f = BytesIO()
-#     PIL.Image.fromarray(a).save(f, fmt)
-#     display(Image(data=f.getvalue()))
 def display(img):
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
@@ -45,9 +26,14 @@ def display(img):
 
     
 def mask_to_image(mask):
-    mask = (255 * mask).astype(np.uint8)
+    mask = (255.0 * mask).astype(np.uint8)
     mask_pil = Image.fromarray(mask).convert('RGB')
     return mask_pil
+
+
+def image_to_mask(img):    
+    mask = np.array(img).astype(np.float32) / 255.0
+    return mask
 
 
 def crop_to_aspect_ratio(img, aspect_ratio):
@@ -64,18 +50,8 @@ def crop_to_aspect_ratio(img, aspect_ratio):
     return img
 
 
-# def get_mask_size,s(init_size, oct_n, oct_s):
-#     size,s = [ np.int32(np.float32(init_size,)) ]
-#     for octave in range(oct_n-1):
-#         hw = np.float32(size,s[-1]) / oct_s
-#         size,s.append(np.int32(hw))
-#     size,s = list(reversed(size,s))
-#     return size,s
-
-
-def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True, animate=True):
+def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
     masks = masks if isinstance(masks, list) else [masks]
-    animate = animate and len(masks) > 1
     color_labels = default_color_labels
     frames = []
     for mask in masks:
@@ -95,27 +71,23 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True, animate=True
                 axis=0).transpose((1,2,0))
         else:
             mask_frame = 255 * mask if draw_rgb else 255 * mask_arr
-        if animate:
-            frames.append(mask_frame)
-        else:
-            display(mask_frame)
+        frames.append(mask_frame)
     return frames
 
 
 def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb, animate)
+    masks = masks if isinstance(masks, list) else [masks]
+    animate = animate if len(masks)>1 else False
+    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
     if animate:
-        clip = ImageSequenceClip(frames, fps=fps)
-        disp_clip = clip.ipython_display()
-        os.system('rm __temp__.mp4')
-        IPython.display.clear_output()
-        return disp_clip
+        return frames_to_movie(frames, fps=fps)
     else:
-        return None
+        for frame in frames:
+            display(frame)
     
     
-def save_mask_video(masks, filename, flatten_blend=False, draw_rgb=True, fps=30):
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb, animate=True)
+def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30):
+    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
     clip = ImageSequenceClip(frames, fps=fps)
     clip.write_videofile(filename, fps=fps)
     IPython.display.clear_output()
@@ -136,7 +108,7 @@ def mask_arcs(size, num_channels, center, radius, period, t, blend=0.0, inwards=
         x1, x2 = radius * (n-c-1), radius * (n-c)
         x1b, x2b = x1 - d, d - x2
         dm = np.maximum(0, np.maximum(d-x2, x1-d)) 
-        mask[:, :, cidx] = np.clip(1.0-x1b/(blend*radius), 0, 1)*np.clip(1.0-x2b/(blend*radius), 0, 1) if blend > 0 else (np.maximum(0, np.maximum(d-x2, x1-d)) <=0) * (dist < radius)
+        mask[:, :, cidx] = np.clip(1.0-x1b/(blend*radius), 0, 1) * np.clip(1.0-x2b/(blend*radius), 0, 1) if blend > 0 else (np.maximum(0, np.maximum(d-x2, x1-d)) <=0) * (dist < radius)
     return mask
 
 
@@ -202,7 +174,10 @@ def mask_image_manual(size, num_channels, path, thresholds, blur_k, n_dilations)
     if len(thresholds) != n:
         raise ValueError('Number of thresholds doesn\'t match number of channels in mask')
     mask = np.zeros((h, w, n))
-    if isfile(path):
+    if is_url(path):
+        img = url_to_image(path)
+        img = np.array(img)[:, :, ::-1]
+    elif os.path.isfile(path):
         img = cv2.imread(path, cv2.IMREAD_COLOR)
     else:
         raise ValueError('no file at %s' % path)
@@ -226,7 +201,10 @@ def mask_image_manual(size, num_channels, path, thresholds, blur_k, n_dilations)
 def mask_image_auto(size, num_channels, path, blur_k, n_dilations):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
-    if isfile(path):
+    if is_url(path):
+        img = url_to_image(path)
+        img = np.array(img)[:, :, ::-1]
+    elif os.path.isfile(path):
         img = cv2.imread(path, cv2.IMREAD_COLOR)
     else:
         raise ValueError('no file at %s' % path)
@@ -253,7 +231,10 @@ def mask_image_auto(size, num_channels, path, blur_k, n_dilations):
 def mask_image_kmeans(size, num_channels, path, blur_k, n_dilations, prev_assign=None):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
-    if isfile(path):
+    if is_url(path):
+        img = url_to_image(path)
+        img = np.array(img)[:, :, ::-1]
+    elif os.path.isfile(path):
         img = cv2.imread(path, cv2.IMREAD_COLOR)
     else:
         raise ValueError('no file at %s' % path)
@@ -291,7 +272,8 @@ def mask_movie(size, num_channels, path, thresholds, blur_k, n_dilations, t, idx
     (w, h), n = size, num_channels
     if len(thresholds) != n:
         raise ValueError('Number of thresholds doesn\'t match number of channels in mask')
-    frames = sorted([join(path,f) for f in listdir(path) if isfile(join(path, f))])
+    frames = sorted([os.path.join(path,f) for f in os.listdir(path) 
+                     if os.path.isfile(os.path.join(path, f))])
     if idx1 != None and idx2 != None:
         frames = frames[idx1:idx2]
     idx = t % len(frames)
@@ -299,7 +281,7 @@ def mask_movie(size, num_channels, path, thresholds, blur_k, n_dilations, t, idx
 
 
 
-def get_mask(mask, t):
+def get_mask(mask, t=0):
     m = EasyDict(mask)
 
     m.size = m.size if 'size' in m else (512, 512)
