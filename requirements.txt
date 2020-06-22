@@ -1,0 +1,8 @@
+numpy
+pillow
+opencv-python
+moviepy
+ipython
+noise
+scikit-learn
+tqdm
