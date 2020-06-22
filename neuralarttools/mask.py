@@ -18,8 +18,8 @@ import numpy as np
 import sklearn.cluster
 import cv2
 
-from canvas import *
-from util import *
+from .canvas import *
+from .util import *
 
 #from lapnorm import *
 

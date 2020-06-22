@@ -8,5 +8,15 @@ setup(name='neuralarttools',
       author_email='gene@genekogan.com',
       license='LGPL 2.0',
       packages=['neuralarttools'],
+      install_requires=[
+          'Pillow',
+          'numpy',
+          'moviepy',
+          'opencv-python',
+          'imutils',
+          'noise',
+          'scikit-learn',
+          'IPython'
+      ],
       zip_safe=False)
 
