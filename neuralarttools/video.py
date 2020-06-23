@@ -6,6 +6,8 @@ from os.path import isfile, isdir, join
 import numpy as np
 from tqdm import tqdm
 
+from .util import *
+
 ImageEnhance.LOAD_TRUNCATED_IMAGES = True
 ImageStat.LOAD_TRUNCATED_IMAGES = True
 Image.LOAD_TRUNCATED_IMAGES = True
@@ -102,7 +104,7 @@ def get_average_histogram(frames_path):
 
 def generate_video2(frames_path, output_path):
     numframes = len([f for f in listdir(frames_path) if isfile(join(frames_path, f))])
-    print('loading %d images from %s' % (numframes, frames_path))
+    log('loading %d images from %s' % (numframes, frames_path))
     images = [ Image.open('%s/f%05d.png'%(frames_path, t+1)) for t in range(numframes) ]
     brightness = [ ImageStat.Stat(img.convert('L')).mean[0] for img in images ]
     avg_brightness = np.mean(brightness)
@@ -119,19 +121,18 @@ def generate_video2(frames_path, output_path):
         img2.save("%s/temp/f%05d.png" % (frames_path, i+1))
     w, h  = images[0].size
     cmd = 'ffmpeg -i %s/temp/f%%05d.png -c:v libx264 -pix_fmt yuv420p -vf scale=%d:%d %s'%(frames_path, w-(w%2), h-(h%2), output_path)
-    print('creating movie at %s' % output_path)
+    log('creating movie at %s' % output_path)
     os.system('rm %s' % output_path)
     os.system(cmd)
     os.system('rm -rf %s/temp' % frames_path)
-    print('done!')
 
     
 def generate_video(frames_path, output_path, sat, con, sharp, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
     numframes = len([f for f in listdir(frames_path) if isfile(join(frames_path, f)) and f[-4:]=='.png'])
     if numframes == 0:
-        print("No frames found in %s"%frames_path)
+        warn("No frames found in %s"%frames_path)
         return
-    print('creating %d-frame movie: %s -> %s'%(numframes, frames_path, output_path))
+    log('creating %d-frame movie: %s -> %s'%(numframes, frames_path, output_path))
     if match_hist:
         avg_hist = get_average_histogram(frames_path)
     os.system('mkdir %s/temp' % frames_path)
@@ -153,13 +154,12 @@ def generate_video(frames_path, output_path, sat, con, sharp, match_hist=False, 
     else:
         cmd = '%s -b %d %s'%(ffmpeg_str, bitrate, output_path)
     os.system('rm %s' % output_path)
-    print('cmd is', cmd)
     os.system(cmd)
     if not cumulative:
         os.system('rm -rf %s/temp' % frames_path)
     if erase_frames:
         os.system('rm -rf %s/f*.png' % frames_path)
-    print('Done making %s' % output_path)
+    log('Done making %s' % output_path)
 
 
 def gen_video(frames_path, sat, con, sharp, bitrate=None, cumulative=False):
@@ -173,7 +173,7 @@ def gen_video_dir(frames_path, sat, con, sharp, overwrite=True, bitrate=None, cu
         output_path = '%s/%s_%0.2f,%0.2f,%0.2f.mp4'%(frames_path, d, sat, con, sharp)
         file_exists = os.path.isfile(output_path)
         if overwrite or not file_exists:
-            print("generate %s"%output_path)
+            log("generate %s"%output_path)
             gen_video(join(frames_path, d), sat, con, sharp, bitrate, cumulative)
 
 
