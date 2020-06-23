@@ -1,76 +1,49 @@
 from PIL import Image
+import numpy as np
 import requests
 import urllib.parse
 from io import BytesIO
 import IPython
+from moviepy.editor import *
 
+Image.MAX_IMAGE_PIXELS = 1e9
     
-    
+
 class EasyDict(dict):
     def __init__(self, *args, **kwargs):
         super(EasyDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
         
 
-def display_local_videos(videos):
-    videos = videos if isinstance(videos, list) else [videos]
-    html_str = ''
-    for video in videos:
-        html_str += '<video controls style="margin:2px" src="%s"></video>' % video
-    IPython.core.display.display(IPython.core.display.HTML(html_str))    
+class ProgressBar:
+    
+    def __init__(self, total_iter, num_increments=32):
+        self.num_increments = num_increments
+        self.idx_iter, self.total_iter = 0, total_iter
+        self.iter_per = self.total_iter / self.num_increments
+
+    def update(self, update_str=''):
+        self.idx_iter += 1
+        progress_iter = int(self.idx_iter / self.iter_per)
+        progress_str  = '[' + '=' * progress_iter 
+        progress_str += '-' * (self.num_increments - progress_iter) + ']'
+        IPython.display.clear_output(wait=True)
+        IPython.display.display(progress_str+'  '+update_str)
 
 
-def is_url(path):
-    path = urllib.parse.urlparse(path)
-    return path.netloc != ''
+def log(message, verbose=True):
+    if not verbose:
+        return
+    print(message)
 
 
-def url_to_image(url):
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
-    return img
+def warn(condition, message, verbose=True):
+    if not condition:
+        return
+    log('Warning: %s' % message, verbose)
 
 
-
-
-
-
-#########
-
-from moviepy.editor import *
-
-
-# def resize_frames_to_even(frames):
-#     frames = [np.array(frame) for frame in frames]
-#     w1, h1 = frames[0].shape[0:2]
-#     if w1%2==1 or h1%2==1:
-#         w2 = w1+1 if w1%2==1 else w1
-#         h2 = h1+1 if h1%2==1 else h1
-#         frames = [np.array(resize(frame, (w2, h2))) 
-#                   for frame in frames]
-#     return frames
-
-
-def frames_to_movie(frames, fps=30):
-    frames = [np.array(frame) for frame in frames]
-    w1, h1 = frames[0].shape[0:2]
-    if w1%2==1 or h1%2==1:
-        w2 = w1+1 if w1%2==1 else w1
-        h2 = h1+1 if h1%2==1 else h1
-        frames = [np.array(resize(frame, (w2, h2))) 
-                  for frame in frames]
-    clip = ImageSequenceClip(frames, fps=fps)
-    disp_clip = clip.ipython_display()
-    os.system('rm __temp__.mp4')
-    IPython.display.clear_output()
-    return disp_clip
-
-
-#######
-import numpy as np
-
-
-def load_image(image, image_size=None):
+def load_image(image, image_size=None, to_numpy=False, normalize=False):
     if isinstance(image, str):
         if is_url(image):
             image = url_to_image(image)
@@ -86,7 +59,28 @@ def load_image(image, image_size=None):
         aspect = get_aspect_ratio(image)
         image_size = (int(aspect * image_size), image_size)
         image = resize(image, image_size)
+    if to_numpy:
+        image = np.array(image)
+        if normalize:
+            image = image / 255.0        
     return image
+
+
+def random_image(image_size, margin=1.0, bias=128.0):
+    w, h = image_size
+    img = bias + margin * (-1.0 + 2.0 * np.random.uniform(size=(h, w, 3)))
+    return img
+
+
+def url_to_image(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return img
+
+
+def is_url(path):
+    path = urllib.parse.urlparse(path)
+    return path.netloc != ''
 
 
 def resize(img, new_size, mode=None, align_corners=True):
@@ -128,12 +122,50 @@ def get_aspect_ratio(image):
     return float(w) / h
 
 
+def crop_to_aspect_ratio(img, aspect_ratio):
+    iw, ih = get_size(img)
+    ar_img = get_aspect_ratio(img)
+    if ar_img > aspect_ratio:
+        iw2 = ih * aspect_ratio
+        ix = (iw-iw2)/2
+        img = np.array(img)[:,int(ix):int(ix+iw2)]
+    elif ar_img < aspect_ratio:
+        ih2 = float(iw) / aspect_ratio
+        iy = (ih-ih2)/2
+        img = np.array(img)[int(iy):int(iy+ih2),:]
+    return img
+
+
 def display(img):
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     IPython.display.display(img)
 
-    
+
+def display_local(files):
+    files = files if isinstance(files, list) else [files]
+    html_str = ''
+    for filename in files:
+        ext = os.path.splitext(filename)[-1].lower()
+        if ext in ['.mp4', 'mov', '']:
+            html_str += '<video controls style="margin:2px" src="%s"></video>' % filename
+        elif ext in ['.png', '.jpg']:
+            html_str += '<img style="margin:2px" src="%s"></img>' % filename
+    IPython.core.display.display(IPython.core.display.HTML(html_str))    
+
+
+def concatenate_images(images, margin=0, vertical=False):
+    w, h = get_size(images[0])
+    W = w+2*margin if vertical else margin+len(images)*(w+margin)
+    H = h+2*margin if not vertical else margin+len(images)*(h+margin)
+    images = [resize(image, (w, h)) for image in images]
+    images_all = Image.new('RGB', (W, H))
+    for i, image in enumerate(images):
+        x, y = (margin, margin+(h+margin)*i) if vertical else (margin+(w+margin)*i, margin)
+        images_all.paste(image, (x, y))
+    return images_all
+
+
 def save(img, filename):
     folder = os.path.dirname(filename)
     if folder and not os.path.isdir(folder):
@@ -147,3 +179,19 @@ def save_frame(img, index, folder):
     filename = '%s/f%05d.png' % (folder, index)
     save(img, filename)
 
+
+def frames_to_movie(frames, fps=30):
+    frames = [np.array(frame) for frame in frames]
+    w1, h1 = frames[0].shape[0:2]
+    if w1%2==1 or h1%2==1:
+        w2 = w1+1 if w1%2==1 else w1
+        h2 = h1+1 if h1%2==1 else h1
+        frames = [np.array(resize(frame, (w2, h2))) 
+                  for frame in frames]
+    clip = ImageSequenceClip(frames, fps=fps)
+    disp_clip = clip.ipython_display()
+    os.system('rm __temp__.mp4')
+    IPython.display.clear_output()
+    return disp_clip
+
+    

@@ -1,6 +1,7 @@
-import argparse
+# import argparse
 import math
 import os
+from tqdm import tqdm
 import numpy as np
 from io import BytesIO
 from PIL import Image
@@ -8,25 +9,25 @@ import IPython
 from moviepy.editor import *
 from noise import pnoise2, snoise2
 
-
+from .mask import *
 from .util import *
 
 
 
-def process_arguments(args):
-    parser = argparse.ArgumentParser(description='modifier')
-    parser.add_argument('--img_in', action='store', required=True, type=str)
-    parser.add_argument('--img_out', action='store', required=True, type=str)
-    parser.add_argument('--img_blend', action='store', required=True, type=str)
-    parser.add_argument('--amt_blend', action='store', required=True, type=float)
-    params = vars(parser.parse_args(args))
-    return params
+# def process_arguments(args):
+#     parser = argparse.ArgumentParser(description='modifier')
+#     parser.add_argument('--img_in', action='store', required=True, type=str)
+#     parser.add_argument('--img_out', action='store', required=True, type=str)
+#     parser.add_argument('--img_blend', action='store', required=True, type=str)
+#     parser.add_argument('--amt_blend', action='store', required=True, type=float)
+#     params = vars(parser.parse_args(args))
+#     return params
 
 
-def display(img):
-    if isinstance(img, np.ndarray):
-        img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-    IPython.display.display(img)
+# def display(img):
+#     if isinstance(img, np.ndarray):
+#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
+#     IPython.display.display(img)
 
 
 def get_canvas_frames(canvas, size, numframes, img=None):
@@ -38,9 +39,10 @@ def get_canvas_frames(canvas, size, numframes, img=None):
     else:
         img = resize(img, (w, h))
     frames = []
-    for f in range(numframes):
+    for f in tqdm(range(numframes)):
         frames.append(np.array(img).astype(np.uint8))
         img = modify_canvas(img, canvas)
+    IPython.display.clear_output()
     return frames
     
 
@@ -57,6 +59,9 @@ def view_canvas(canvas, size, numframes, img=None, animate=False, fps=30):
 def save_canvas_video(filename, canvas, size, numframes, img, fps=30):
     frames = get_canvas_frames(canvas, size, numframes, img)
     clip = ImageSequenceClip(frames, fps=fps)
+    folder = os.path.dirname(filename)
+    if folder and not os.path.isdir(folder):
+        os.mkdir(folder)
     clip.write_videofile(filename, fps=fps)
     IPython.display.clear_output()
 
@@ -80,6 +85,17 @@ def lerp_mod(mod1, mod2, r):
         except:
             mod_avg[k] = tuple([ (1.0 - r) * m1_ + r * m2_ for m1_, m2_ in zip(mod1[k], mod2[k]) ])
     return mod_avg
+
+
+# def warp_image(mod, img_in, img_blend=None, amt_blend=None):
+#     img_out = modify_canvas(img_in, mod)
+#     if (img_blend is not None and amt_blend is not None and amt_blend > 0):
+#         img_out = (1.0 - amt_blend) * img_out + amt_blend * img_blend
+#     return img_out
+
+def blend_images(img1, img2, blend_amt):
+    img_out = (1.0 - blend_amt) * img1 + blend_amt * img2
+    return img_out
 
 
 def map_image(img, idx):  # should it be mod by h-1, w-1?
@@ -213,31 +229,53 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
     
     return img
 
-    
-def warp_image(mod, img_in, img_blend=None, amt_blend=None):
-    img_out = modify_canvas(img_in, mod)
-    if (img_blend is not None and amt_blend is not None and amt_blend > 0):
-        img_out = (1.0 - amt_blend) * img_out + amt_blend * img_blend
-    return img_out
 
 
-def main(img_in, img_blend, img_out, amt_blend):
-    mod = {'center':(0.5, 0.5),
-           'shift':(0.0, 0.0), 'stretch':(1.0, 1.0), 
-           'zoom':1.0, 'expand':0.0, 
-           'rot_const':0.0, 'rot_ang':0.0, 'rot_dst':0.0,
-           'spiral_margin':0.0, 'spiral_periods':0,
-           'noise_rate':(0.0, 0.0), 'noise_margin':(0.0, 0.0)}
-    img_in = np.array(Image.open(img_in).convert('RGB'))
-    img_blend = np.array(Image.open(img_blend).convert('RGB'))
-    img = warp_image(img_in, img_blend, amt_blend, mod)
-    Image.fromarray(img.astype(np.uint8)).save(img_out)
 
 
-if __name__ == '__main__':
-    params = process_arguments(sys.argv[1:])
-    img_in = params['img_in']
-    img_out = params['img_out']
-    img_blend = params['img_blend']
-    amt_blend = float(params['amt_blend'])    
-    main(img_in, img_blend, img_out, amt)
+
+# def inject_image(img0, path, amt, matchHist=True):
+#     hist0 = get_histogram(img0.astype('uint8'), bright=False)
+#     #img1 = scipy.misc.imread(path, mode='RGB')
+#     img1 = np.array(Image.open(path).convert('RGB'))
+#     (h, w), (ih, iw) = (img0.shape[0:2]), (img1.shape[0:2])
+#     if float(w)/h > float(iw)/ih:
+#         d = ih - iw * float(h) / w
+#         if d>0:
+#             img1 = img1[int(d/2):-int(d/2),:,:]
+#     else:
+#         d = iw - ih * float(w) / h
+#         if d>0:
+#             img1 = img1[:, int(d/2):-int(d/2),:]
+#     img1 = resize(img1, (h, w))
+#     img2 = (1.0 - amt) * img0 + amt * img1
+#     if matchHist:
+#         img2 = match_histogram(img2, hist0)
+#     return img2.astype('float32')    
+
+
+
+
+
+
+
+# def main(img_in, img_blend, img_out, amt_blend):
+#     mod = {'center':(0.5, 0.5),
+#            'shift':(0.0, 0.0), 'stretch':(1.0, 1.0), 
+#            'zoom':1.0, 'expand':0.0, 
+#            'rot_const':0.0, 'rot_ang':0.0, 'rot_dst':0.0,
+#            'spiral_margin':0.0, 'spiral_periods':0,
+#            'noise_rate':(0.0, 0.0), 'noise_margin':(0.0, 0.0)}
+#     img_in = np.array(Image.open(img_in).convert('RGB'))
+#     img_blend = np.array(Image.open(img_blend).convert('RGB'))
+#     img = warp_image(img_in, img_blend, amt_blend, mod)
+#     Image.fromarray(img.astype(np.uint8)).save(img_out)
+
+
+# if __name__ == '__main__':
+#     params = process_arguments(sys.argv[1:])
+#     img_in = params['img_in']
+#     img_out = params['img_out']
+#     img_blend = params['img_blend']
+#     amt_blend = float(params['amt_blend'])    
+#     main(img_in, img_blend, img_out, amt)

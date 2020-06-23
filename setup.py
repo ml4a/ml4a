@@ -16,7 +16,8 @@ setup(name='neuralarttools',
           'imutils',
           'noise',
           'scikit-learn',
-          'IPython'
+          'IPython',
+          'tqdm'
       ],
       zip_safe=False)
 

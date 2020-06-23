@@ -1,7 +1,7 @@
 import math
 import os
 import itertools
-#from moviepy.editor import *
+from tqdm import tqdm
 import IPython
 import numpy as np
 import sklearn.cluster
@@ -19,10 +19,11 @@ default_color_labels = [
 ]
 
 
-def display(img):
-    if isinstance(img, np.ndarray):
-        img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-    IPython.display.display(img)
+
+# def display(img):
+#     if isinstance(img, np.ndarray):
+#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
+#     IPython.display.display(img)
 
     
 def mask_to_image(mask):
@@ -36,25 +37,25 @@ def image_to_mask(img):
     return mask
 
 
-def crop_to_aspect_ratio(img, aspect_ratio):
-    ih, iw = img.shape[0:2]
-    ar_img = float(iw)/ih
-    if ar_img > aspect_ratio:
-        iw2 = ih * aspect_ratio
-        ix = (iw-iw2)/2
-        img = img[:,int(ix):int(ix+iw2)]
-    elif ar_img < aspect_ratio:
-        ih2 = float(iw) / aspect_ratio
-        iy = (ih-ih2)/2
-        img = img[int(iy):int(iy+ih2),:]
-    return img
+# def crop_to_aspect_ratio(img, aspect_ratio):
+#     ih, iw = img.shape[0:2]
+#     ar_img = float(iw)/ih
+#     if ar_img > aspect_ratio:
+#         iw2 = ih * aspect_ratio
+#         ix = (iw-iw2)/2
+#         img = img[:,int(ix):int(ix+iw2)]
+#     elif ar_img < aspect_ratio:
+#         ih2 = float(iw) / aspect_ratio
+#         iy = (ih-ih2)/2
+#         img = img[int(iy):int(iy+ih2),:]
+#     return img
 
 
 def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
     masks = masks if isinstance(masks, list) else [masks]
     color_labels = default_color_labels
     frames = []
-    for mask in masks:
+    for mask in tqdm(masks):
         h, w, nc = mask.shape
         mask_arr = np.zeros((h, w * nc))
         for c in range(nc):
@@ -72,6 +73,7 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
         else:
             mask_frame = 255 * mask if draw_rgb else 255 * mask_arr
         frames.append(mask_frame)
+    IPython.display.clear_output()
     return frames
 
 
@@ -89,6 +91,9 @@ def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
 def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30):
     frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
     clip = ImageSequenceClip(frames, fps=fps)
+    folder = os.path.dirname(filename)
+    if folder and not os.path.isdir(folder):
+        os.mkdir(folder)
     clip.write_videofile(filename, fps=fps)
     IPython.display.clear_output()
     
@@ -280,7 +285,6 @@ def mask_movie(size, num_channels, path, thresholds, blur_k, n_dilations, t, idx
     return mask_image_manual(h, w, n, frames[idx], thresholds, blur_k, n_dilations) 
 
 
-
 def get_mask(mask, t=0):
     m = EasyDict(mask)
 
@@ -389,26 +393,4 @@ def get_mask(mask, t=0):
         masks = masks / mask_sum[:, :, np.newaxis] 
 
     return masks
-
-
-
-
-# def inject_image(img0, path, amt, matchHist=True):
-#     hist0 = get_histogram(img0.astype('uint8'), bright=False)
-#     #img1 = scipy.misc.imread(path, mode='RGB')
-#     img1 = np.array(Image.open(path).convert('RGB'))
-#     (h, w), (ih, iw) = (img0.shape[0:2]), (img1.shape[0:2])
-#     if float(w)/h > float(iw)/ih:
-#         d = ih - iw * float(h) / w
-#         if d>0:
-#             img1 = img1[int(d/2):-int(d/2),:,:]
-#     else:
-#         d = iw - ih * float(w) / h
-#         if d>0:
-#             img1 = img1[:, int(d/2):-int(d/2),:]
-#     img1 = resize(img1, (h, w))
-#     img2 = (1.0 - amt) * img0 + amt * img1
-#     if matchHist:
-#         img2 = match_histogram(img2, hist0)
-#     return img2.astype('float32')    
 
