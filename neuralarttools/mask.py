@@ -19,13 +19,6 @@ default_color_labels = [
 ]
 
 
-
-# def display(img):
-#     if isinstance(img, np.ndarray):
-#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-#     IPython.display.display(img)
-
-    
 def mask_to_image(mask):
     mask = (255.0 * mask).astype(np.uint8)
     mask_pil = Image.fromarray(mask).convert('RGB')
@@ -37,25 +30,11 @@ def image_to_mask(img):
     return mask
 
 
-# def crop_to_aspect_ratio(img, aspect_ratio):
-#     ih, iw = img.shape[0:2]
-#     ar_img = float(iw)/ih
-#     if ar_img > aspect_ratio:
-#         iw2 = ih * aspect_ratio
-#         ix = (iw-iw2)/2
-#         img = img[:,int(ix):int(ix+iw2)]
-#     elif ar_img < aspect_ratio:
-#         ih2 = float(iw) / aspect_ratio
-#         iy = (ih-ih2)/2
-#         img = img[int(iy):int(iy+ih2),:]
-#     return img
-
-
 def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
     masks = masks if isinstance(masks, list) else [masks]
     color_labels = default_color_labels
     frames = []
-    for mask in tqdm(masks):
+    for mask in masks:
         h, w, nc = mask.shape
         mask_arr = np.zeros((h, w * nc))
         for c in range(nc):
@@ -73,7 +52,6 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
         else:
             mask_frame = 255 * mask if draw_rgb else 255 * mask_arr
         frames.append(mask_frame)
-    IPython.display.clear_output()
     return frames
 
 

@@ -14,22 +14,6 @@ from .util import *
 
 
 
-# def process_arguments(args):
-#     parser = argparse.ArgumentParser(description='modifier')
-#     parser.add_argument('--img_in', action='store', required=True, type=str)
-#     parser.add_argument('--img_out', action='store', required=True, type=str)
-#     parser.add_argument('--img_blend', action='store', required=True, type=str)
-#     parser.add_argument('--amt_blend', action='store', required=True, type=float)
-#     params = vars(parser.parse_args(args))
-#     return params
-
-
-# def display(img):
-#     if isinstance(img, np.ndarray):
-#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-#     IPython.display.display(img)
-
-
 def get_canvas_frames(canvas, size, numframes, img=None):
     w, h = size
     if img is None and type(img) == str:
@@ -39,10 +23,9 @@ def get_canvas_frames(canvas, size, numframes, img=None):
     else:
         img = resize(img, (w, h))
     frames = []
-    for f in tqdm(range(numframes)):
+    for f in range(numframes):
         frames.append(np.array(img).astype(np.uint8))
         img = modify_canvas(img, canvas)
-    IPython.display.clear_output()
     return frames
     
 
@@ -252,30 +235,3 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
 #     if matchHist:
 #         img2 = match_histogram(img2, hist0)
 #     return img2.astype('float32')    
-
-
-
-
-
-
-
-# def main(img_in, img_blend, img_out, amt_blend):
-#     mod = {'center':(0.5, 0.5),
-#            'shift':(0.0, 0.0), 'stretch':(1.0, 1.0), 
-#            'zoom':1.0, 'expand':0.0, 
-#            'rot_const':0.0, 'rot_ang':0.0, 'rot_dst':0.0,
-#            'spiral_margin':0.0, 'spiral_periods':0,
-#            'noise_rate':(0.0, 0.0), 'noise_margin':(0.0, 0.0)}
-#     img_in = np.array(Image.open(img_in).convert('RGB'))
-#     img_blend = np.array(Image.open(img_blend).convert('RGB'))
-#     img = warp_image(img_in, img_blend, amt_blend, mod)
-#     Image.fromarray(img.astype(np.uint8)).save(img_out)
-
-
-# if __name__ == '__main__':
-#     params = process_arguments(sys.argv[1:])
-#     img_in = params['img_in']
-#     img_out = params['img_out']
-#     img_blend = params['img_blend']
-#     amt_blend = float(params['amt_blend'])    
-#     main(img_in, img_blend, img_out, amt)
