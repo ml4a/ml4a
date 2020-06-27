@@ -5,4 +5,7 @@ moviepy
 ipython
 noise
 scikit-learn
+scikit-image
 tqdm
+torch
+torchvision
