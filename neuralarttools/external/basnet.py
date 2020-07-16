@@ -1,16 +1,19 @@
+import numpy as np
 from PIL import Image
 import torch
 from torchvision import transforms
 from torch.autograd import Variable
 
-from .util import *
+from ..util import *
+from ..image import *
+from .BASNet.data_loader import RescaleT, ToTensorLab
+from .BASNet.model import BASNet
 
 net = None
 model_loaded = False
 
 
 def load_model(model_dir):
-    from model import BASNet
     net = BASNet(3,1)
     net.load_state_dict(torch.load(model_dir))
     if torch.cuda.is_available():
@@ -24,24 +27,16 @@ def normPRED(d):
     mi = torch.min(d)
     dn = (d-mi)/(ma-mi)
     return dn
-
-
-def setup_basnet(basnet_path, basnet_model_path):
-    import sys
-    sys.path.append(basnet_path)
+        
     
-    from data_loader import RescaleT
-    from data_loader import ToTensorLab
-
+def get_foreground(img):
+    
     global model_loaded, net
     if not model_loaded:
+        basnet_model_path = '/home/bzion/projects/BASNet/saved_models/basnet_bsi/basnet.pth'
+        print('load from', basnet_model_path)
         net = load_model(basnet_model_path)
         model_loaded = True
-
-        
-def get_foreground(img, basnet_path=None, basnet_model_path=None):
-    if basnet_path is not None and basnet_model_path is not None:
-        setup_basnet(basnet_path, basnet_model_path)
     
     img = np.array(img)
     size = get_size(img)
