@@ -1,0 +1,3 @@
+[submodule "neuralarttools/external/BASNet"]
+	path = neuralarttools/external/BASNet
+	url = https://github.com/NathanUA/BASNet
