@@ -1,4 +1,3 @@
-# import argparse
 import math
 import os
 from tqdm import tqdm
@@ -11,7 +10,7 @@ from noise import pnoise2, snoise2
 
 from .mask import *
 from .util import *
-
+from .image import *
 
 
 def get_canvas_frames(canvas, size, numframes, img=None):
@@ -88,11 +87,11 @@ def map_image(img, idx):  # should it be mod by h-1, w-1?
     idx_turn = np.mod(np.floor_divide(idx,[h,w]),2)
     idx = np.multiply(idx_mod,1-idx_turn)+np.multiply([h,w]-idx_mod,idx_turn)
     idx = np.clip(idx, [0,0], [h-1,w-1])
-    idx = np.array(idx).astype('float32')
-    idx_tl = np.floor(np.copy(idx).astype('float32')).astype('int32')
-    idx_br = np.ceil(np.copy(idx).astype('float32')).astype('int32')
-    idx_tr = np.copy(idx_tl).astype('int32')
-    idx_bl = np.copy(idx_br).astype('int32')
+    idx = np.array(idx).astype(np.float32)
+    idx_tl = np.floor(np.copy(idx).astype(np.float32)).astype(np.int32)
+    idx_br = np.ceil(np.copy(idx).astype(np.float32)).astype(np.int32)
+    idx_tr = np.copy(idx_tl).astype(np.int32)
+    idx_bl = np.copy(idx_br).astype(np.int32)
     idx_tr[:,1] = idx_br[:,1]
     idx_bl[:,1] = idx_tl[:,1]
     diff = np.subtract(idx, idx_tl)
@@ -116,6 +115,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
 
     # make default grid
     grid = np.mgrid[0:w, 0:h].T
+    grid = grid.astype(np.float32)    
     grid[:,:,0], grid[:,:,1] = grid[:,:,1], grid[:,:,0].copy()
     mod_idxs = np.copy([[grid]*3]*len(mods))
     
@@ -134,14 +134,15 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
         mod['spiral_periods'] = mod['spiral_periods'] if 'spiral_periods' in mod else 0
         mod['noise_rate'] = mod['noise_rate'] if 'noise_rate' in mod else (0.0, 0.0)
         mod['noise_margin'] = mod['noise_margin'] if 'noise_margin' in mod else (0.0, 0.0)
-
+        mod['noise_offset'] = mod['noise_offset'] if 'noise_offset' in mod else (-10.0, 10.0)
+        
         shift, stretch = mod['shift'], mod['stretch']
         zoom, expand = mod['zoom'], mod['expand']
         rot_const, rot_ang, rot_dst = mod['rot_const'], mod['rot_ang'], mod['rot_dst']
         spiral_margin, spiral_periods = mod['spiral_margin'], mod['spiral_periods']
-        noise_rate, noise_margin = mod['noise_rate'], mod['noise_margin']
+        noise_rate, noise_margin, noise_offset = mod['noise_rate'], mod['noise_margin'], mod['noise_offset']
         cy, cx = h * mod['center'][0], w * mod['center'][1]
-
+        
         # check in advance on what operations so as to save time
         to_shift = (shift[0] != 0.0 or shift[1] != 0.0 or stretch[0] != 1.0 or stretch[1] != 1.0)
         to_zoom = (zoom != 1.0 or expand != 0.0)
@@ -192,7 +193,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
 
         # perlin noise, very inefficient because of the double for loop
         if to_noise:
-            offyy, offyx, offxy, offxx = 400, 200, 300, 100
+            offyy, offyx, offxy, offxx = noise_offset[1], noise_offset[1], noise_offset[0], noise_offset[0]
             nyy, nyx, nxy, nxx = noise_rate[1], noise_rate[1], noise_rate[0], noise_rate[0]
             midy, marginy = 0.5*(-noise_margin[0]+noise_margin[0]), 0.5*(noise_margin[0]--noise_margin[0])
             midx, marginx = 0.5*(-noise_margin[1]+noise_margin[1]), 0.5*(noise_margin[1]--noise_margin[1])

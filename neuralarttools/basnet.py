@@ -26,8 +26,7 @@ def normPRED(d):
     return dn
 
 
-def get_foreground(img, basnet_path, basnet_model_path):
-    
+def setup_basnet(basnet_path, basnet_model_path):
     import sys
     sys.path.append(basnet_path)
     
@@ -39,6 +38,11 @@ def get_foreground(img, basnet_path, basnet_model_path):
         net = load_model(basnet_model_path)
         model_loaded = True
 
+        
+def get_foreground(img, basnet_path=None, basnet_model_path=None):
+    if basnet_path is not None and basnet_model_path is not None:
+        setup_basnet(basnet_path, basnet_model_path)
+    
     img = np.array(img)
     size = get_size(img)
     

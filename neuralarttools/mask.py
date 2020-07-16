@@ -7,8 +7,10 @@ import numpy as np
 import sklearn.cluster
 import cv2
 
-from .canvas import *
 from .util import *
+from .image import *
+from .canvas import *
+
 
 default_color_labels = [
     [255,0,0],     [0, 255, 0],   [0,0,255],
@@ -252,15 +254,15 @@ def mask_image_kmeans(size, num_channels, path, blur_k, n_dilations, prev_assign
 
 
 def mask_movie(size, num_channels, path, thresholds, blur_k, n_dilations, t, idx1=None, idx2=None):
-    (w, h), n = size, num_channels
-    if len(thresholds) != n:
+    if len(thresholds) != num_channels:
         raise ValueError('Number of thresholds doesn\'t match number of channels in mask')
-    frames = sorted([os.path.join(path,f) for f in os.listdir(path) 
+    frames = sorted([os.path.join(path, f) for f in os.listdir(path) 
                      if os.path.isfile(os.path.join(path, f))])
     if idx1 != None and idx2 != None:
         frames = frames[idx1:idx2]
     idx = t % len(frames)
-    return mask_image_manual(h, w, n, frames[idx], thresholds, blur_k, n_dilations) 
+    #return mask_image_manual(size, num_channels, frames[idx], thresholds, blur_k, n_dilations) 
+    return mask_image_kmeans(size, num_channels, frames[idx], blur_k, n_dilations) 
 
 
 def get_mask(mask, t=0):
@@ -271,8 +273,7 @@ def get_mask(mask, t=0):
     m.period = m.period if 'period' in m else 1e8
     m.normalize = m.normalize if 'normalize' in m else False
     
-    if m.type == 'solid':
-        
+    if m.type == 'solid': 
         masks = mask_identity(
             size=m.size, 
             num_channels=m.num_channels
@@ -350,8 +351,8 @@ def get_mask(mask, t=0):
         m.thresholds = m.thresholds if 'thresholds' in m else [int(255*i/m.num_channels) for i in range(m.num_channels)]
         m.blur_k = m.blur_k if 'blur_k' in m else 1
         m.n_dilations = m.n_dilations if 'n_dilations' in m else 0
-        m.idx1 = m.idx1 if 'idx1' in m else 0
-        m.idx2 = m.idx2 if 'idx2' in m else 10
+        m.idx1 = m.idx1 if 'idx1' in m else None
+        m.idx2 = m.idx2 if 'idx2' in m else None
 
         masks = mask_movie(
             size=m.size, 
