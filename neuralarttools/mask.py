@@ -154,22 +154,17 @@ def mask_interpolation(size, num_channels, period, t, blend=0.0, reverse=False, 
     return mask
 
 
-def mask_image_manual(size, num_channels, path, thresholds, blur_k, n_dilations):
+def mask_image_manual(size, num_channels, image, thresholds, blur_k, n_dilations):
     (w, h), n = size, num_channels
-    if len(thresholds) != n:
-        raise ValueError('Number of thresholds doesn\'t match number of channels in mask')
+    assert len(thresholds) == n, 'Number of thresholds doesn\'t match number of channels in mask'
     mask = np.zeros((h, w, n))
-    if is_url(path):
-        img = url_to_image(path)
-        img = np.array(img)[:, :, ::-1]
-    elif os.path.isfile(path):
-        img = cv2.imread(path, cv2.IMREAD_COLOR)
-    else:
-        raise ValueError('no file at %s' % path)
+    img = load_image(image) if isinstance(image, str) else image
+    img = resize(img, size)
+    img = np.array(img)[:, :, ::-1]
     img = crop_to_aspect_ratio(img, float(w)/h)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #img = cv2.blur(img, (blur_k, blur_k))
-    cumulative = np.zeros(img.shape[0:2]).astype('uint8')
+    cumulative = np.zeros(img.shape[:2]).astype('uint8')
     for channel, thresh in enumerate(thresholds):
         ret, img1 = cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY_INV)
         img1 -= cumulative
@@ -183,28 +178,28 @@ def mask_image_manual(size, num_channels, path, thresholds, blur_k, n_dilations)
     return mask
 
 
-def mask_image_auto(size, num_channels, path, blur_k, n_dilations):
+def mask_image_auto(size, num_channels, image, blur_k, n_dilations):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
-    if is_url(path):
-        img = url_to_image(path)
-        img = np.array(img)[:, :, ::-1]
-    elif os.path.isfile(path):
-        img = cv2.imread(path, cv2.IMREAD_COLOR)
-    else:
-        raise ValueError('no file at %s' % path)
+    img = load_image(image) if isinstance(image, str) else image
+    img = resize(img, size)
+    img = np.array(img)[:, :, ::-1]
     img = crop_to_aspect_ratio(img, float(w)/h)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     #img = cv2.blur(img, (blur_k, blur_k))
     mask_cumulative = 255 * img.shape[0] * img.shape[1] / num_channels
-    cumulative = np.zeros(img.shape[0:2]).astype('uint8')
+    cumulative = np.zeros(img.shape[0:2]).astype(np.uint8)
     thresh, thresholds = 0, []
     for channel in range(n):
         amt_mask = 0
-        while amt_mask < mask_cumulative:
+        while amt_mask < mask_cumulative and thresh<=256:
             thresh += 1
             ret, img1 = cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY_INV)
+            #img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+            #cumulative = cumulative.reshape((780,1035,1))
             img1 -= cumulative
             amt_mask = np.sum(img1)
+            #print(channel, thresh, amt_mask, mask_cumulative)
         cumulative += img1
         img1 = cv2.blur(img1, (blur_k, blur_k))
         img1 = cv2.resize(img1, (w, h))
@@ -213,56 +208,42 @@ def mask_image_auto(size, num_channels, path, blur_k, n_dilations):
     return mask
 
 
-def mask_image_kmeans(size, num_channels, path, blur_k, n_dilations, prev_assign=None):
+def mask_image_kmeans(size, num_channels, image, blur_k, n_dilations, prev_mask=None):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
-    if is_url(path):
-        img = url_to_image(path)
-        img = np.array(img)[:, :, ::-1]
-    elif os.path.isfile(path):
-        img = cv2.imread(path, cv2.IMREAD_COLOR)
-    else:
-        raise ValueError('no file at %s' % path)
+    img = load_image(image) if isinstance(image, str) else image
+    img = resize(img, size)
+    img = np.array(img)[:, :, ::-1]
     img = cv2.blur(img, (blur_k, blur_k))
     img = crop_to_aspect_ratio(img, float(w)/h)
-    img = cv2.resize(img, (w, h), cv2.INTER_NEAREST)   # CHANGE
+    #img = cv2.resize(img, (w, h), cv2.INTER_NEAREST)   # CHANGE
+    img = np.array(resize(img, (w, h)))
     pixels = np.array(list(img)).reshape(h * w, 3)
     clusters, assign, _ = sklearn.cluster.k_means(pixels, n, init='k-means++', random_state=3425)
-    #clusters = [[c[2],c[1],c[0]] for c in clusters]
-    #new_pixels = np.array([clusters[a] for a in assign]).reshape((ih, iw, ic))
-    if prev_assign is not None:
+    
+    if prev_mask is not None:        
+        prev_assign = np.array(list(np.argmax(prev_mask, 2))).reshape(h * w)
         assign_candidates, best_total = list(itertools.permutations(range(n))), -1
         for ac in assign_candidates:
             reassign = np.array([ac[a] for a in assign])
             total = np.sum(reassign == prev_assign)
             if total > best_total:
-                best_total, best_assign = total, reassign
+                best_total = total 
+                best_assign = reassign
         assign = best_assign
     else:
         amts = [np.sum(assign==c) for c in range(n)]
         order = list(reversed(sorted(range(len(amts)), key=lambda k: amts[k])))
         reorder = [order.index(i) for i in range(n)]
         assign = np.array([reorder[a] for a in assign])
+
     for c in range(n):
         channel_mask = np.multiply(np.ones((h*w)), assign==c).reshape((h,w))
         for d in range(n_dilations):
             channel_mask = cv2.dilate(channel_mask, (3, 3))    
-        #channel_mask = cv2.resize(channel_mask, (w, h), cv2.INTER_LINEAR)   # CHANGE
         mask[:,:,c] = channel_mask
-    sums = [np.sum(mask[:,:,c]) for c in range(n)]
+
     return mask
-
-
-def mask_movie(size, num_channels, path, thresholds, blur_k, n_dilations, t, idx1=None, idx2=None):
-    if len(thresholds) != num_channels:
-        raise ValueError('Number of thresholds doesn\'t match number of channels in mask')
-    frames = sorted([os.path.join(path, f) for f in os.listdir(path) 
-                     if os.path.isfile(os.path.join(path, f))])
-    if idx1 != None and idx2 != None:
-        frames = frames[idx1:idx2]
-    idx = t % len(frames)
-    #return mask_image_manual(size, num_channels, frames[idx], thresholds, blur_k, n_dilations) 
-    return mask_image_kmeans(size, num_channels, frames[idx], blur_k, n_dilations) 
 
 
 def get_mask(mask, t=0):
@@ -329,41 +310,44 @@ def get_mask(mask, t=0):
         )
 
     elif m.type == 'image':
-        m.path = m.path if 'path' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
         m.blur_k = m.blur_k if 'blur_k' in m else 1
         m.n_dilations = m.n_dilations if 'n_dilations' in m else 0
-        m.prev_assign = m.prev_assign if 'prev_assign' in m else None
+        m.prev_mask = m.prev_mask if 'prev_mask' in m else None
+        m.method = m.method if 'method' in m else 'kmeans'
+        m.image = m.image if 'image' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
+        m.image = m.image.get_frame(t) if isinstance(m.image, MoviePlayer) else m.image
+        assert m.method in ['kmeans', 'threshold', 'auto'], \
+            'Invalid method %s. Options are (kmeans, threshold, auto)'%m.method
+
+        if m.method == 'kmeans':        
+            masks = mask_image_kmeans(
+                size=m.size, 
+                num_channels=m.num_channels, 
+                image=m.image, 
+                blur_k=m.blur_k, 
+                n_dilations=m.n_dilations, 
+                prev_mask=m.prev_mask
+            )
+
+        elif m.method == 'threshold':
+            masks = mask_image_manual(
+                size=m.size, 
+                num_channels=m.num_channels, 
+                image=m.image, 
+                thresholds=m.thresholds, 
+                blur_k=m.blur_k, 
+                n_dilations=m.n_dilations
+            )
+            
+        elif m.method == 'auto':
+            masks = mask_image_auto(
+                size=m.size, 
+                num_channels=m.num_channels, 
+                image=m.image, 
+                blur_k=m.blur_k, 
+                n_dilations=m.n_dilations
+            )
         
-        #masks = mask_image_manual(size=m.size, num_channels=m.num_channels, path=m.path, thresholds=m.thresholds, blur_k=m.blur_k, n_dilations=m.n_dilations)
-        #masks = mask_image_auto(size=m.size, num_channels=m.num_channels, path=m.path, blur_k=m.blur_k, n_dilations=m.n_dilations)
-        
-        masks = mask_image_kmeans(
-            size=m.size, 
-            num_channels=m.num_channels, 
-            path=m.path, 
-            blur_k=m.blur_k, 
-            n_dilations=m.n_dilations, 
-            prev_assign=m.prev_assign
-        )
-
-    elif m.type == 'movie':
-        assert 'path' in m, "Error: no path in movie mask specified"
-        m.thresholds = m.thresholds if 'thresholds' in m else [int(255*i/m.num_channels) for i in range(m.num_channels)]
-        m.blur_k = m.blur_k if 'blur_k' in m else 1
-        m.n_dilations = m.n_dilations if 'n_dilations' in m else 0
-        m.idx1 = m.idx1 if 'idx1' in m else None
-        m.idx2 = m.idx2 if 'idx2' in m else None
-
-        masks = mask_movie(
-            size=m.size, 
-            num_channels=m.num_channels, 
-            path=m.path, 
-            thresholds=m.thresholds, 
-            blur_k=m.blur_k, 
-            n_dilations=m.n_dilations, 
-            t=t, idx1=m.idx1, idx2=m.idx2
-        )
-
     if m.normalize:
         mask_sum = np.maximum(
             np.ones(masks.shape[0:2]), 
@@ -373,3 +357,13 @@ def get_mask(mask, t=0):
 
     return masks
 
+
+def mask_image(img, mask):
+    img, mask = np.array(img), np.array(mask)/255.0
+    img = img.reshape(*img.shape, 1) if img.ndim == 2 else img
+    mask = mask.reshape(*mask.shape, 1) if mask.ndim == 2 else mask
+    nc_img, nc_mask = img.shape[-1], mask.shape[-1]
+    if nc_mask == 1:
+        mask = mask[:, :] * np.ones(nc_img, dtype=int)[None, None, :]
+    nc_img, nc_mask = img.shape[-1], mask.shape[-1]
+    return img * mask
