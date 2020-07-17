@@ -63,7 +63,7 @@ def get_foreground(img):
     pred = pred.squeeze()
     pred_np = pred.cpu().data.numpy()
 
-    im_mask = Image.fromarray(pred_np * 255).convert('RGB')
+    im_mask = Image.fromarray(pred_np * 255).convert('L')
     im_mask = im_mask.resize(size, resample=Image.BILINEAR)
     im_mask = np.array(im_mask)
     
