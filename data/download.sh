@@ -1,7 +1,8 @@
 
 # for most image processing notebooks, get 101_Object_Categories
 echo "Downloading 101_Object_Categories for image notebooks"
-curl -L -o 101_ObjectCategories.tar.gz --progress-bar http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz
+# curl -L -o 101_ObjectCategories.tar.gz --progress-bar http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz
+curl -L -o 101_ObjectCategories.tar.gz --progress-bar https://web.archive.org/web/20200509103714id_/http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz
 tar -xzf 101_ObjectCategories.tar.gz
 rm 101_ObjectCategories.tar.gz
 
