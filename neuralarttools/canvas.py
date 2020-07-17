@@ -8,9 +8,9 @@ import IPython
 from moviepy.editor import *
 from noise import pnoise2, snoise2
 
-from .mask import *
 from .util import *
 from .image import *
+from .mask import *
 
 
 def get_canvas_frames(canvas, size, numframes, img=None):

@@ -9,24 +9,8 @@ import moviepy.editor as mpe
 
 Image.MAX_IMAGE_PIXELS = 1e9
     
-    
-class MoviePlayer:
-    
-    def __init__(self, path):
-        self.path = path
-        self.video = mpe.VideoFileClip(path)
-        self.fps = self.video.fps
-        self.duration = self.video.duration
-        self.num_frames = int(self.fps * self.duration)
-        
-    def get_frame(self, frame_idx):
-        time = frame_idx / self.fps
-        img = self.video.get_frame(time)
-        img = Image.fromarray(img)
-        return img
-    
 
-    
+
 def load_image(image, image_size=None, to_numpy=False, normalize=False):
     if isinstance(image, str):
         if is_url(image):
@@ -121,10 +105,13 @@ def crop_to_aspect_ratio(img, aspect_ratio):
 
 
 def display(img):
+    if isinstance(img, list):
+        return frames_to_movie(img, fps=30)
     if isinstance(img, np.ndarray):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     IPython.display.display(img)
 
+    
 
 def display_local(files):
     files = files if isinstance(files, list) else [files]
@@ -179,3 +166,25 @@ def frames_to_movie(frames, fps=30):
     return disp_clip
 
     
+
+class MoviePlayer:
+    
+    def __init__(self, path, t1=None, t2=None):
+        self.path = path
+        self.video = mpe.VideoFileClip(path)
+        self.fps = self.video.fps
+        self.duration = self.video.duration
+        self.num_frames = int(self.fps * self.duration)
+        self.frame1 = self.fps * t1 if t1 is not None else 0
+        self.frame2 = self.fps * t2 if t2 is not None else self.num_frames
+        
+    def get_frame(self, frame_idx, size=None):
+        frame_idx = self.frame1 + (frame_idx % (self.frame2-self.frame1))
+        time = frame_idx / self.fps
+        img = self.video.get_frame(time)
+        img = Image.fromarray(img)
+        if size is not None:
+            img = resize(img)
+        return img
+    
+
