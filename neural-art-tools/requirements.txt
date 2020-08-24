@@ -1,0 +1,11 @@
+numpy
+pillow
+opencv-python
+moviepy
+ipython
+noise
+scikit-learn
+scikit-image
+tqdm
+torch
+torchvision
