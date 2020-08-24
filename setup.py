@@ -27,8 +27,7 @@ setup(
         'face_recognition',
         'torch',
         'torchvision',
-        'tensorflow-gpu',
-        'git+https://github.com/tensorpack/tensorpack'
+        'tensorflow-gpu'
     ],
     zip_safe=False
 )
