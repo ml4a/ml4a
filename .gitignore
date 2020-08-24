@@ -1,17 +1,7 @@
 *.DS_Store
 *.pyc
 *.swp
-.ipynb_checkpoints
-data/101_ObjectCategories
-data/101_ObjectCategories.tar.gz
-data/vgg16_weights.h5
-notebooks/embeddings.dat
-notebooks/game_weights.h5
-ml4a-guides.tar
-assets/neural-painter-frames
-
-# data files
-data/101_ObjectCategories/
-data/Reuters21578-Apte-90Cat/
-data/lfw_funneled/
-data/Vintage Drum Machines/
+*.pth
+__pycache__/
+ml4a.egg*
+*.ipynb_checkpoints*
