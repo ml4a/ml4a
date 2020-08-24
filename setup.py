@@ -1,23 +1,35 @@
 from setuptools import setup
 
-setup(name='neuralarttools',
-      version='0.1',
-      description='A collection of various utilities mainly useful for pixel-optimization based neural arts, including masks and image-distortion functions, video processing, datasets, and convenience functions for Jupyter notebooks.',
-      url='http://github.com/genekogan/neural-art-tools',
-      author='Gene Kogan',
-      author_email='gene@genekogan.com',
-      license='LGPL 2.0',
-      packages=['neuralarttools'],
-      install_requires=[
-          'Pillow',
-          'numpy',
-          'moviepy',
-          'opencv-python',
-          'imutils',
-          'noise',
-          'scikit-learn',
-          'IPython',
-          'tqdm'
-      ],
-      zip_safe=False)
+setup(
+    name='ml4a',
+    version='0.1',
+    description='A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples',
+    url='http://github.com/ml4a/ml4a-guides',
+    author='Gene Kogan',
+    author_email='gene@genekogan.com',
+    license='LGPL 2.0',
+    packages=['ml4a'],
+    install_requires=[
+        'tqdm',
+        'ipython',
+        'matplotlib',
+        'moviepy',
+        'numpy',
+        'Pillow',
+        'opencv-python',
+        'imutils',
+        'scikit-image',
+        'scikit-learn',
+        'bs4',
+        'noise',
+        'lxml',
+        'dlib',
+        'face_recognition',
+        'torch',
+        'torchvision',
+        'tensorflow-gpu',
+        'git+https://github.com/tensorpack/tensorpack'
+    ],
+    zip_safe=False
+)
 
