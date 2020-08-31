@@ -1,15 +1,3 @@
-import os
-import sys
-from ml4a.models import submodules
-submodules_root = os.path.dirname(submodules.__file__)
-stylegan_root = os.path.join(submodules_root, 'stylegan2')
-sys.path.append(stylegan_root)
-
-print('root is', stylegan_root)
-print("lets find the library")
-
-
-
 import random
 import math
 import PIL.Image
@@ -20,9 +8,16 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 
+
+
+from ml4a.models import submodules
+submodules.submodule_in_path('stylegan2', True)
+
 import pretrained_networks
 import dnnlib
 import dnnlib.tflib as tflib
+
+submodules.submodule_in_path('stylegan2', False)
 
 
 

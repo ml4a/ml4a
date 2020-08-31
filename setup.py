@@ -27,7 +27,7 @@ setup(
         'face_recognition',
         'torch',
         'torchvision',
-        'tensorflow-gpu'
+        'tensorflow-gpu==1.15.0'
     ],
     zip_safe=False
 )
