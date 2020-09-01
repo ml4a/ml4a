@@ -1,6 +1,10 @@
 import IPython
+import os
+from pathlib import Path
+import gdown
 
 
+ML4A_DATA_ROOT = os.path.join(os.path.expanduser('~'), '.ml4a')
 
 class EasyDict(dict):
     def __init__(self, *args, **kwargs):
@@ -35,3 +39,32 @@ def warn(condition, message, verbose=True):
         return
     log('Warning: %s' % message, verbose)
 
+
+    
+    
+###########
+
+
+
+
+
+
+
+
+
+def get_ml4a_downloads_folder():
+    global ML4A_DATA_ROOT
+    ml4a_downloads = os.path.join(ML4A_DATA_ROOT, 'models')
+    Path(ml4a_downloads).mkdir(parents=True, exist_ok=True)
+    return ml4a_downloads
+    
+def download_from_gdrive(gdrive_fileid, output_path):
+    folder, filename = os.path.split(output_path)
+    ml4a_downloads = get_ml4a_downloads_folder()
+    output_folder = os.path.join(ml4a_downloads, folder)
+    output_filename = os.path.join(output_folder, filename)
+    if not os.path.exists(output_filename):
+        Path(output_folder).mkdir(parents=True, exist_ok=True)
+        gdrive_url = 'https://drive.google.com/uc?id=%s'%gdrive_fileid
+        gdown.download(gdrive_url, output_filename, quiet=False)
+    return output_filename

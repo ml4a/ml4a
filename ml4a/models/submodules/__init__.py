@@ -1,25 +1,24 @@
-print("import ml4a/models/submodules/__init__")
-#from . import stylegan2
-
-#from .stylegan2 import *
-
-
-
-from . import stylegan2
-
-
-
 import os
 import sys
+from .. import submodules
+
+
+class import_from(object):
+    
+    def __init__(self, submodule_name):
+        submodules_root = os.path.dirname(submodules.__file__)
+        self.submodule = os.path.join(submodules_root, submodule_name)
+        sys.path.append(self.submodule)
+
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        sys.path = [path for path in sys.path if path != self.submodule]
+        return False
+
+
+#from . import stylegan2
 
 
 
-
-def submodule_in_path(submodule_name, included):
-    from ml4a.models import submodules
-    submodules_root = os.path.dirname(submodules.__file__)
-    submodule = os.path.join(submodules_root, submodule_name)
-    if included:
-        sys.path.append(submodule)
-    else:
-        sys.path = [p for p in sys.path if p != submodule]

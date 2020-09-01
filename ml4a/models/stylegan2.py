@@ -1,3 +1,4 @@
+import os
 import random
 import math
 import PIL.Image
@@ -7,35 +8,59 @@ import scipy
 from scipy.interpolate import interp1d
 import numpy as np
 
+from .. import util
+from .. import image
+from . import submodules
+
+with submodules.import_from('stylegan2'):
+    import pretrained_networks
+    import dnnlib
+    import dnnlib.tflib as tflib
+
+_G, _D, Gs, Gs_syn_kwargs = None, None, None, None
+
+pretrained_models = {
+    'landscapes': {
+        'gdrive_fileid': '1UV6dUphjG8kUyYS4FWpzwTHpuGcdQ62Y', 
+        'output_path': 'stylegan2/pretrained/landscapes/network-final-landscapes.pth'
+    },
+    'wikiarts': {
+        'gdrive_fileid': '1Kg7yqWSgoXN_mvHypX_fXt2GjrJZ_CZv', 
+        'output_path': 'stylegan2/pretrained/wikiarts/network-final-wikiarts.pth'
+    }
+}
 
 
-
-from ml4a.models import submodules
-submodules.submodule_in_path('stylegan2', True)
-
-import pretrained_networks
-import dnnlib
-import dnnlib.tflib as tflib
-
-submodules.submodule_in_path('stylegan2', False)
+def get_pretrained_models():
+    return pretrained_models.keys()
 
 
+def get_pretrained_model(model_name):
+    if model_name in pretrained_models:
+        model = pretrained_models[model_name]
+        model_file = util.download_from_gdrive(
+            gdrive_fileid=model['gdrive_fileid'], 
+            output_path=model['output_path'])
+        return model_file
+    else:
+        raise Exception("No pretrained model named %s. Run stylegan2.get_pretrained_models() to get a list." % model_name) 
+    
 
-
-def display(images, num_cols=4,title=None):
-    n = len(images)
-    h, w, _ = images[0].shape
-    nr, nc = math.ceil(n / num_cols), num_cols
-    for r in range(nr):
-        idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
-        img1 = np.concatenate([img for img in images[idx1:idx2]], axis=1)
-        if title is not None:
-            pyplot.title(title)        
-        pyplot.figure(figsize=(int(4 * float(w)/h * num_cols), 4))
-        pyplot.imshow(img1)
+# def display(images, num_cols=4,title=None):
+#     n = len(images)
+#     h, w, _ = images[0].shape
+#     nr, nc = math.ceil(n / num_cols), num_cols
+#     for r in range(nr):
+#         idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
+#         img1 = np.concatenate([img for img in images[idx1:idx2]], axis=1)
+#         if title is not None:
+#             pyplot.title(title)        
+#         pyplot.figure(figsize=(int(4 * float(w)/h * num_cols), 4))
+#         pyplot.imshow(img1)
 
         
-def random_sample(Gs, Gs_syn_kwargs, num_images, label, truncation=1.0, seed=None):
+def random_sample(num_images, label, truncation=1.0, seed=None):
+    global Gs, Gs_syn_kwargs
     seed = seed if seed else np.random.randint(100)
     rnd = np.random.RandomState(int(seed))
     latents = rnd.randn(num_images, *Gs.input_shape[1:]) # [minibatch, component]
@@ -57,6 +82,7 @@ def interpolated_matrix_between(start, end, num_frames):
 
 
 def get_gaussian_latents(duration_sec, smoothing_sec, mp4_fps=30, seed=None):
+    global Gs
     num_frames = int(np.rint(duration_sec * mp4_fps))    
     random_state = np.random.RandomState(seed if seed is not None else np.random.randint(1000))
     shape = [num_frames, np.prod([1, 1])] + Gs.input_shape[1:] # [frame, image, channel, component]
@@ -115,7 +141,9 @@ def get_latent_interpolation_bspline(endpoints, nf, k, s, shuffle):
 
 
 
-def generate_interpolation_video(mp4_name, labels, truncation=1, duration_sec=60.0, smoothing_sec=1.0, image_shrink=1, image_zoom=1, mp4_fps=30, mp4_codec='libx265', mp4_bitrate='16M', seed=None, minibatch_size=16, result_subdir = 'generated'):
+def generate_interpolation_video(output_path, labels, truncation=1, duration_sec=60.0, smoothing_sec=1.0, image_shrink=1, image_zoom=1, mp4_fps=30, mp4_codec='libx264', mp4_bitrate='16M', seed=None, minibatch_size=16):    
+    global Gs, Gs_syn_kwargs
+
     num_frames = int(np.rint(duration_sec * mp4_fps))    
     all_latents = get_gaussian_latents(duration_sec, smoothing_sec, mp4_fps, seed)
     all_labels = get_interpolated_labels(labels, num_frames)
@@ -124,30 +152,20 @@ def generate_interpolation_video(mp4_name, labels, truncation=1, duration_sec=60
         frame_idx = int(np.clip(np.round(t * mp4_fps), 0, num_frames - 1))
         the_latents = all_latents[frame_idx]
         labels = all_labels[frame_idx].reshape((1, 7))
-        images = Gs.run(the_latents, labels, truncation_psi=truncation, minibatch_size=minibatch_size, **Gs_syn_kwargs) # [minibatch, height, width, channel]
+        images = Gs.run(the_latents, labels, truncation_psi=truncation, minibatch_size=minibatch_size, **Gs_syn_kwargs)
         return images[0]
         
-    mp4_name_temp = 'temp_%s' % mp4_name
-    if not os.path.exists(result_subdir):
-        os.makedirs(result_subdir)
-    moviepy.editor.VideoClip(make_frame, duration=duration_sec).write_videofile(
-        os.path.join(result_subdir, mp4_name_temp), 
-        fps=mp4_fps, codec=mp4_codec, bitrate=mp4_bitrate)
-    cmd = 'ffmpeg -y -i "%s" -c:v libx264 -pix_fmt yuv420p "%s";ls "%s"' % (os.path.join(result_subdir, mp4_name_temp), os.path.join(result_subdir, mp4_name), os.path.join(result_subdir, mp4_name_temp))
-    os.system(cmd)
+    clip = moviepy.editor.VideoClip(make_frame, duration=duration_sec)
+    clip.write_videofile(output_path, fps=mp4_fps, codec='libx264', bitrate=mp4_bitrate)
+
+#    cmd = 'ffmpeg -y -i "%s" -c:v libx264 -pix_fmt yuv420p "%s";ls "%s"' % (os.path.join(result_subdir, mp4_name_temp), os.path.join(result_subdir, mp4_name), os.path.join(result_subdir, mp4_name_temp))
+#    os.system(cmd)
     
 
-    
-    
-    
-def tryit():
-    
-    network_pkl = 'models/network-landscapes-final.pkl'
+
+def load_model(network_pkl, randomize_noise=False):
+    global Gs, Gs_syn_kwargs
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
-
     Gs_syn_kwargs = dnnlib.EasyDict()
     Gs_syn_kwargs.output_transform = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
-    Gs_syn_kwargs.randomize_noise = False
-    
-    images, latents = random_sample(Gs,Gs_syn_kwargs, 12, label=1, truncation=1.0)
-    display(images)
+    Gs_syn_kwargs.randomize_noise = randomize_noise

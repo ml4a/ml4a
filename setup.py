@@ -12,6 +12,8 @@ setup(
     install_requires=[
         'tqdm',
         'ipython',
+        'ipywidgets',
+        'gdown',
         'matplotlib',
         'moviepy',
         'numpy',

@@ -1,4 +1,5 @@
 import os
+import math
 from PIL import Image
 import numpy as np
 import requests
@@ -104,13 +105,32 @@ def crop_to_aspect_ratio(img, aspect_ratio):
     return img
 
 
-def display(img):
-    if isinstance(img, list):
-        return frames_to_movie(img, fps=30)
-    if isinstance(img, np.ndarray):
-        img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-    IPython.display.display(img)
+# def display(img, animate=False):
+#     if isinstance(img, list):
+#         if animate:
+#             return frames_to_movie(img, fps=30)            
+#     if isinstance(img, np.ndarray):
+#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
+#     IPython.display.display(img)
 
+def display(images, animate=False, num_cols=4):
+    images = np.array(images)
+    multiple_images = np.array(images).ndim>3
+    if not multiple_images:
+        images = np.expand_dims(images, axis=0)
+    if animate:
+        return image.frames_to_movie(images, fps=30)
+    n = len(images)
+    num_cols = min(n, num_cols)
+    h, w, _ = images[0].shape
+    nr, nc = math.ceil(n / num_cols), num_cols
+    for r in range(nr):
+        idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
+        img_row = np.concatenate([img for img in images[idx1:idx2]], axis=1)
+        whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, 3))
+        img_row = np.concatenate([img_row, whitespace], axis=1)
+        img_row = Image.fromarray(img_row.astype(np.uint8)).convert('RGB')
+        IPython.display.display(img_row)
     
 
 def display_local(files):
