@@ -7,8 +7,8 @@ import numpy as np
 import sklearn.cluster
 import cv2
 
-from .util import *
-from .image import *
+from ..utils.util import *
+from ..image import *
 from .canvas import *
 
 

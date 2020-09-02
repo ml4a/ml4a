@@ -8,8 +8,8 @@ import IPython
 from moviepy.editor import *
 from noise import pnoise2, snoise2
 
-from .util import *
-from .image import *
+from ..utils.util import *
+from ..image import *
 from .mask import *
 
 

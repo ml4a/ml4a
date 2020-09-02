@@ -12,27 +12,27 @@ Image.MAX_IMAGE_PIXELS = 1e9
     
 
 
-def load_image(image, image_size=None, to_numpy=False, normalize=False):
-    if isinstance(image, str):
-        if is_url(image):
-            image = url_to_image(image)
-        elif os.path.exists(image):
-            image = Image.open(image).convert('RGB')
+def load_image(img, image_size=None, to_numpy=False, normalize=False):
+    if isinstance(img, str):
+        if is_url(img):
+            img = url_to_image(img)
+        elif os.path.exists(img):
+            img = Image.open(img).convert('RGB')
         else:
-            raise ValueError('no image found at %s'%image)
-    elif isinstance(image, np.ndarray):
-        image = Image.fromarray(image.astype(np.uint8)).convert('RGB')
+            raise ValueError('no image found at %s'%img)
+    elif isinstance(img, np.ndarray):
+        img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     if image_size is not None and isinstance(image_size, tuple):
-        image = resize(image, image_size)
+        img = resize(img, image_size)
     elif image_size is not None and not isinstance(image_size, tuple):
-        aspect = get_aspect_ratio(image)
+        aspect = get_aspect_ratio(img)
         image_size = (int(aspect * image_size), image_size)
-        image = resize(image, image_size)
+        img = resize(img, image_size)
     if to_numpy:
-        image = np.array(image)
+        img = np.array(img)
         if normalize:
-            image = image / 255.0        
-    return image
+            img = img / 255.0        
+    return img
 
 
 def random_image(image_size, margin=1.0, bias=128.0):
@@ -75,19 +75,19 @@ def resize(img, new_size, mode=None, align_corners=True):
     return img.resize((w2, h2), resample=resample_mode)
 
 
-def get_size(image):
+def get_size(img):
     if isinstance(image, str):
         image = load_image(image, 1024)
-        w, h = image.size
-    elif isinstance(image, Image.Image):    
-        w, h = image.size
+        w, h = img.size
+    elif isinstance(image, img.Image):    
+        w, h = img.size
     elif isinstance(image, np.ndarray):
-        w, h = image.shape[1], image.shape[0]
+        w, h = img.shape[1], img.shape[0]
     return w, h
 
 
-def get_aspect_ratio(image):
-    w, h = get_size(image)
+def get_aspect_ratio(img):
+    w, h = get_size(img)
     return float(w) / h
 
 
@@ -105,28 +105,36 @@ def crop_to_aspect_ratio(img, aspect_ratio):
     return img
 
 
-# def display(img, animate=False):
-#     if isinstance(img, list):
-#         if animate:
-#             return frames_to_movie(img, fps=30)            
-#     if isinstance(img, np.ndarray):
-#         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
-#     IPython.display.display(img)
-
 def display(images, animate=False, num_cols=4):
     images = np.array(images)
-    multiple_images = np.array(images).ndim>3
+    ndim = np.array(images).ndim
+    if ndim == 2:
+        images = np.expand_dims(images, axis=-1)
+        multiple_images = False
+        num_channels = 1
+    elif ndim == 3:
+        if images.shape[-1] in [1,3,4]:
+            multiple_images = False 
+            num_channels = images.shape[-1]
+        else:
+            multiple_images = True
+            num_channels = 1
+    elif ndim == 4:
+        multiple_images = True
+        num_channels = images.shape[-1]
     if not multiple_images:
         images = np.expand_dims(images, axis=0)
     if animate:
-        return image.frames_to_movie(images, fps=30)
+        return frames_to_movie(images, fps=30)
     n = len(images)
     num_cols = min(n, num_cols)
-    h, w, _ = images[0].shape
+    h, w = images[0].shape[:2]
     nr, nc = math.ceil(n / num_cols), num_cols
     for r in range(nr):
         idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
         img_row = np.concatenate([img for img in images[idx1:idx2]], axis=1)
+        if num_channels == 1:
+            img_row = np.repeat(img_row, 3, axis=-1)
         whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, 3))
         img_row = np.concatenate([img_row, whitespace], axis=1)
         img_row = Image.fromarray(img_row.astype(np.uint8)).convert('RGB')
