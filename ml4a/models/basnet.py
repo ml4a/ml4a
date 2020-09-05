@@ -4,7 +4,7 @@ import torch
 from torchvision import transforms
 from torch.autograd import Variable
 
-from .. import util
+from ..utils import util
 from .. import image
 from . import submodules
 

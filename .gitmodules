@@ -7,3 +7,6 @@
 [submodule "ml4a/models/submodules/stylegan2"]
 	path = ml4a/models/submodules/stylegan2
 	url = https://github.com/NVlabs/stylegan2
+[submodule "ml4a/models/submodules/neural-style-pt"]
+	path = ml4a/models/submodules/neural-style-pt
+	url = https://github.com/genekogan/neural-style-pt
