@@ -12,6 +12,8 @@ setup(
     install_requires=[
         'tqdm',
         'ipython',
+        'ipywidgets',
+        'gdown',
         'matplotlib',
         'moviepy',
         'numpy',
@@ -27,8 +29,7 @@ setup(
         'face_recognition',
         'torch',
         'torchvision',
-        'tensorflow-gpu',
-        'git+https://github.com/tensorpack/tensorpack'
+        'tensorflow-gpu==1.15.0'
     ],
     zip_safe=False
 )
