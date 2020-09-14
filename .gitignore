@@ -2,6 +2,7 @@
 *.pyc
 *.swp
 *.pth
+.vscode/
 __pycache__/
 ml4a.egg*
 *.ipynb_checkpoints*
