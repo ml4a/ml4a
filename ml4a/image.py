@@ -76,12 +76,12 @@ def resize(img, new_size, mode=None, align_corners=True):
 
 
 def get_size(img):
-    if isinstance(image, str):
+    if isinstance(img, str):
         image = load_image(image, 1024)
         w, h = img.size
-    elif isinstance(image, img.Image):    
+    elif isinstance(img, Image.Image):    
         w, h = img.size
-    elif isinstance(image, np.ndarray):
+    elif isinstance(img, np.ndarray):
         w, h = img.shape[1], img.shape[0]
     return w, h
 
@@ -105,16 +105,15 @@ def crop_to_aspect_ratio(img, aspect_ratio):
     return img
 
 
-def display(images, animate=False, num_cols=4):
+def display(images, animate=False, title=None, num_cols=4):
     images = np.array(images)
     ndim = np.array(images).ndim
+    multiple_images = False
     if ndim == 2:
         images = np.expand_dims(images, axis=-1)
-        multiple_images = False
         num_channels = 1
     elif ndim == 3:
         if images.shape[-1] in [1,3,4]:
-            multiple_images = False 
             num_channels = images.shape[-1]
         else:
             multiple_images = True
@@ -138,6 +137,8 @@ def display(images, animate=False, num_cols=4):
         whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, 3))
         img_row = np.concatenate([img_row, whitespace], axis=1)
         img_row = Image.fromarray(img_row.astype(np.uint8)).convert('RGB')
+        if title is not None:
+            print(title)
         IPython.display.display(img_row)
     
 
