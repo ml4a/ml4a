@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='ml4a',
@@ -8,7 +8,7 @@ setup(
     author='Gene Kogan',
     author_email='gene@genekogan.com',
     license='LGPL 2.0',
-    packages=['ml4a'],
+    packages=find_packages(), 
     install_requires=[
         'tqdm',
         'ipython',
