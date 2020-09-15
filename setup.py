@@ -8,7 +8,7 @@ setup(
     author='Gene Kogan',
     author_email='gene@genekogan.com',
     license='LGPL 2.0',
-    packages=find_packages(), 
+    packages=['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules', 'ml4a.models.submodules.BASNet', 'ml4a.models.submodules.glow', 'ml4a.models.submodules.neural-style-pt', 'ml4a.models.submodules.stylegan2'], 
     install_requires=[
         'tqdm',
         'ipython',
