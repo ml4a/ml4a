@@ -120,7 +120,7 @@ from tqdm import tqdm
 import cv2
 
 
-
+# def write_from_frames
 
 def write_from_generator(video_name, latents, generator_function, fps=30, batch_size=16):
     num_frames = latents.shape[0]
