@@ -8,7 +8,7 @@ setup(
     author='Gene Kogan',
     author_email='gene@genekogan.com',
     license='LGPL 2.0',
-    packages=['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules', 'ml4a.models.submodules.BASNet', 'ml4a.models.submodules.glow', 'ml4a.models.submodules.neural-style-pt', 'ml4a.models.submodules.stylegan2'], 
+    packages=['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules', 'ml4a.models.submodules.BASNet', 'ml4a.models.submodules.BASNet.model', 'ml4a.models.submodules.BASNet.pytorch_iou', 'ml4a.models.submodules.BASNet.pytorch_ssim', 'ml4a.models.submodules.glow', 'ml4a.models.submodules.glow.demo', 'ml4a.models.submodules.neural-style-pt', 'ml4a.models.submodules.stylegan2', 'ml4a.models.submodules.stylegan2.dnnlib', 'ml4a.models.submodules.stylegan2.dnnlib.tflib', 'ml4a.models.submodules.stylegan2.dnnlib.tflib.ops', 'ml4a.models.submodules.stylegan2.dnnlib.submission', 'ml4a.models.submodules.stylegan2.dnnlib.submission.internal', 'ml4a.models.submodules.stylegan2.metrics', 'ml4a.models.submodules.stylegan2.training'], 
     install_requires=[
         'tqdm',
         'ipython',
