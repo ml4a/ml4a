@@ -110,5 +110,47 @@ def main():
         gen_video_dir(params['dir'], sa, co, sh, overwrite=True)
     
 
+    
+    
+
+    
+##############
+
+from tqdm import tqdm
+import cv2
+
+
+# def write_from_frames
+
+def write_from_generator(video_name, latents, generator_function, fps=30, batch_size=16):
+    num_frames = latents.shape[0]
+    for f in tqdm(range(0, num_frames, batch_size)):
+        f1, f2 = f, min(num_frames-1, f+batch_size)
+        batch = latents[f1:f2, :]
+        imgs = generator_function(batch)
+        if f == 0:
+            height, width = imgs[0].shape[0:2]
+            video = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc('m', 'p', '4', 'v'), fps=30, frameSize=(width, height))
+        for iter in range(0, imgs.shape[0]):
+            video.write(imgs[iter,:,:,::-1])
+    cv2.destroyAllWindows()
+    video.release()
+    
+    
+#############
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 if __name__ == '__main__':
     main()

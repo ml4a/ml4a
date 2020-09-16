@@ -8,7 +8,7 @@ import scipy
 from scipy.interpolate import interp1d
 import numpy as np
 
-from .. import util
+from ..utils import downloads
 from .. import image
 from . import submodules
 
@@ -38,7 +38,7 @@ def get_pretrained_models():
 def get_pretrained_model(model_name):
     if model_name in pretrained_models:
         model = pretrained_models[model_name]
-        model_file = util.download_from_gdrive(
+        model_file = downloads.download_from_gdrive(
             gdrive_fileid=model['gdrive_fileid'], 
             output_path=model['output_path'])
         return model_file

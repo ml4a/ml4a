@@ -1,12 +1,12 @@
 [submodule "ml4a/models/glow"]
 	path = ml4a/models/submodules/glow
 	url = https://github.com/openai/glow
-[submodule "ml4a/models/BASNet"]
-	path = ml4a/models/submodules/BASNet
-	url = https://github.com/NathanUA/BASNet
 [submodule "ml4a/models/submodules/stylegan2"]
 	path = ml4a/models/submodules/stylegan2
 	url = https://github.com/NVlabs/stylegan2
 [submodule "ml4a/models/submodules/neural-style-pt"]
 	path = ml4a/models/submodules/neural-style-pt
 	url = https://github.com/genekogan/neural-style-pt
+[submodule "ml4a/models/submodules/BASNet"]
+	path = ml4a/models/submodules/BASNet
+	url = https://github.com/genekogan/BASNet

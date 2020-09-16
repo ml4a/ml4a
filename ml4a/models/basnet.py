@@ -4,7 +4,7 @@ import torch
 from torchvision import transforms
 from torch.autograd import Variable
 
-from ..utils import util
+from ..utils import downloads
 from .. import image
 from . import submodules
 
@@ -37,7 +37,7 @@ def get_foreground(img):
     
     global model_loaded, net
     if not model_loaded:
-        basnet_model_file = util.download_from_gdrive(
+        basnet_model_file = downloads.download_from_gdrive(
             gdrive_fileid='1s52ek_4YTDRt_EOkx1FS53u-vJa0c4nu', 
             output_path='BASNet/saved_models/basnet_bsi/basnet.pth')
         net = load_model(basnet_model_file)
