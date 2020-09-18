@@ -20,6 +20,10 @@ with submodules.import_from('stylegan2'):
 _G, _D, Gs, Gs_syn_kwargs = None, None, None, None
 
 pretrained_models = {
+    'ffhq': {
+        'gdrive_fileid': '1qSJvpFOUf6vSjAzmjjRya21Hlc9dCC9S', 
+        'output_path': 'stylegan2/pretrained/ffhq/network-final-ffhq.pth'
+    },
     'landscapes': {
         'gdrive_fileid': '1UV6dUphjG8kUyYS4FWpzwTHpuGcdQ62Y', 
         'output_path': 'stylegan2/pretrained/landscapes/network-final-landscapes.pth'
