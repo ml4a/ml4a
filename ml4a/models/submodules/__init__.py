@@ -17,8 +17,3 @@ class import_from(object):
         sys.path = [path for path in sys.path if path != self.submodule]
         return False
 
-
-#from . import stylegan2
-
-
-
