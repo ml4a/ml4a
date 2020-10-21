@@ -4,12 +4,12 @@
 [submodule "ml4a/models/submodules/stylegan2"]
 	path = ml4a/models/submodules/stylegan2
 	url = https://github.com/NVlabs/stylegan2
-[submodule "ml4a/models/submodules/neural-style-pt"]
-	path = ml4a/models/submodules/neural-style-pt
-	url = https://github.com/genekogan/neural-style-pt
 [submodule "ml4a/models/submodules/BASNet"]
 	path = ml4a/models/submodules/BASNet
 	url = https://github.com/genekogan/BASNet
-[submodule "ml4a/models/submodules/neural-synth"]
-	path = ml4a/models/submodules/neural-synth
-	url = https://github.com/genekogan/neural-synth
+[submodule "ml4a/models/submodules/neural_style"]
+	path = ml4a/models/submodules/neural_style
+	url = https://github.com/genekogan/neural_style
+[submodule "ml4a/models/submodules/deepdream"]
+	path = ml4a/models/submodules/deepdream
+	url = https://github.com/genekogan/deepdream
