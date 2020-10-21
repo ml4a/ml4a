@@ -13,3 +13,6 @@
 [submodule "ml4a/models/submodules/deepdream"]
 	path = ml4a/models/submodules/deepdream
 	url = https://github.com/genekogan/deepdream
+[submodule "ml4a/models/submodules/PhotoSketch"]
+	path = ml4a/models/submodules/PhotoSketch
+	url = https://github.com/mtli/PhotoSketch
