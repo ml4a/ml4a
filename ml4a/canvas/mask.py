@@ -9,6 +9,7 @@ import cv2
 
 from ..utils.downloads import *
 from ..utils.console import *
+from ..utils import EasyDict
 from ..image import *
 from .canvas import *
 

@@ -6,7 +6,7 @@ from os.path import isfile, isdir, join
 import numpy as np
 from tqdm import tqdm
 
-from .util import *
+from .console import *
 from .histogram import *
 
 ImageEnhance.LOAD_TRUNCATED_IMAGES = True
@@ -39,7 +39,7 @@ def generate_video2(frames_path, output_path):
     os.system('rm -rf %s/temp' % frames_path)
 
     
-def generate_video(frames_path, output_path, sat, con, sharp, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
+def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
     numframes = len([f for f in listdir(frames_path) if isfile(join(frames_path, f)) and f[-4:]=='.png'])
     if numframes == 0:
         warn("No frames found in %s"%frames_path)
