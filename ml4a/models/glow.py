@@ -9,6 +9,7 @@ from . import submodules
 with submodules.import_from('glow'):
     pass
 
+
 lock = Lock()
 sess, update_feed = None, None
 eps_size, eps_shapes, n_eps = None, None, None
