@@ -6,6 +6,7 @@ with submodules.import_from('deepdream'):
     from util import *
     from deepdream import *
     from dream import *
+    from bookmarks import *
 
 
 params = DeepDreamArgs()
@@ -21,7 +22,7 @@ def setup_deepdream():
     return model
 
 
-def run(config, img0):
+def run(config, img, title=None):
     if not model:
         setup_deepdream()
-    return run_deepdream(model, config, img0)
+    return run_deepdream(model, config, img, title)

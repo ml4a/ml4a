@@ -22,7 +22,7 @@ def setup_neuralstyle():
     return model
 
 
-def run(config):
+def run(config, img, title=None):
     if model is None:
         setup_neuralstyle()
-    return style_transfer(model, config)
+    return style_transfer(model, config, img)

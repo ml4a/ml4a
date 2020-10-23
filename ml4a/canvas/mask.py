@@ -317,7 +317,8 @@ def get_mask(mask, t=0):
         m.prev_mask = m.prev_mask if 'prev_mask' in m else None
         m.method = m.method if 'method' in m else 'kmeans'
         m.image = m.image if 'image' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
-        m.image = m.image.get_frame(t) if isinstance(m.image, MoviePlayer) else m.image
+        is_movie = isinstance(m.image, MoviePlayer) or type(m.image).__name__ == 'MoviePlayer'
+        m.image = m.image.get_frame(t) if is_movie else m.image
         assert m.method in ['kmeans', 'threshold', 'auto'], \
             'Invalid method %s. Options are (kmeans, threshold, auto)'%m.method
 
