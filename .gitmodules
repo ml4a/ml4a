@@ -22,3 +22,6 @@
 [submodule "ml4a/models/submodules/idinvert_pytorch"]
 	path = ml4a/models/submodules/idinvert_pytorch
 	url = https://github.com/genforce/idinvert_pytorch
+[submodule "ml4a/models/submodules/White-box-Cartoonization"]
+	path = ml4a/models/submodules/White-box-Cartoonization
+	url = https://github.com/SystemErrorWang/White-box-Cartoonization

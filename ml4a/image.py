@@ -127,7 +127,7 @@ def display(images, animate=False, title=None, num_cols=4):
         return frames_to_movie(images, fps=30)
     n = len(images)
     num_cols = min(n, num_cols)
-    h, w = images[0].shape[:2]
+    h, w = np.array(images[0]).shape[:2]
     nr, nc = math.ceil(n / num_cols), num_cols
     for r in range(nr):
         idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
