@@ -43,6 +43,7 @@ def download_data_file(url, output_path, zip_file=False, overwrite=False):
     output_folder, output_filename, output_exists = __process_output_path__(output_path, zip_file)
     if not output_exists or overwrite:
         Path(output_folder).mkdir(parents=True, exist_ok=True)
+        print('Downloading %s to %s' % (url, output_folder))
         with requests.get(url, stream=True) as r:
             with open(output_filename, 'wb') as f:
                 shutil.copyfileobj(r.raw, f)

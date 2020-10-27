@@ -16,3 +16,9 @@
 [submodule "ml4a/models/submodules/PhotoSketch"]
 	path = ml4a/models/submodules/PhotoSketch
 	url = https://github.com/mtli/PhotoSketch
+[submodule "ml4a/models/submodules/semantic-segmentation-pytorch"]
+	path = ml4a/models/submodules/semantic-segmentation-pytorch
+	url = https://github.com/CSAILVision/semantic-segmentation-pytorch
+[submodule "ml4a/models/submodules/idinvert_pytorch"]
+	path = ml4a/models/submodules/idinvert_pytorch
+	url = https://github.com/genforce/idinvert_pytorch
