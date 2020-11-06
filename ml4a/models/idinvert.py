@@ -78,7 +78,7 @@ def fuse(model_name, context_images, target_image, crop_size=125, center_x=145, 
                                                crop_x=width,
                                                crop_y=height,
                                                num_viz=1)
-
+        
     diffused_images = [np.concatenate([images[-1], mask_aug], axis=2) 
                        for key, images in diffused_images.items()]
 
