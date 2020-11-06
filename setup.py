@@ -1,5 +1,49 @@
 from setuptools import setup, find_packages
 
+packages = ['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules']
+submodules_root = 'ml4a.models.submodules'
+submodules = {
+    'BASNet': ['model', 'pytorch_iou', 'pytorch_ssim'],
+    'deepdream': [],
+    'glow': ['demo'],
+    'idinvert_pytorch': ['boundaries', 'boundaries.stylegan_bedroom256', 'boundaries.stylegan_ffhq256', 'boundaries.stylegan_tower256', 'models', 'utils'],
+    'neural-style-pt': [],
+    'PhotoSketch': ['data', 'models', 'options', 'scripts', 'util'],
+    'semantic-segmentation-pytorch': ['config', 'data', 'mit_semseg', 'mit_semseg.config', 'mit_semseg.lib', 'mit_semseg.lib.nn', 'mit_semseg.lib.nn.modules', 'mit_semseg.lib.nn.modules.tests', 'mit_semseg.lib.nn.parallel', 'mit_semseg.lib.utils', 'mit_semseg.lib.utils.data'],
+    'SPADE': ['data', 'datasets', 'models', 'models.networks', 'models.networks.sync_batchnorm', 'options', 'trainers', 'util'],
+    'stylegan2': ['dnnlib', 'dnnlib.tflib', 'dnnlib.tflib.ops', 'dnnlib.submission', 'dnnlib.submission.internal', 'metrics', 'training'],
+    'White-box-Cartoonization': ['index_files', 'test_code', 'saved_models', 'train_code', 'selective_search']
+} 
+install_requires = [
+    'tqdm',
+    'ipython',
+    'ipywidgets',
+    'gdown',
+    'matplotlib',
+    'moviepy',
+    'numpy',
+    'Pillow',
+    'dill', 
+    'opencv-python',
+    'imutils', 
+    'scikit-image', 
+    'scikit-learn', 
+    'librosa',
+    'bs4', 
+    'noise', 
+    'lxml', 
+    'dlib', 
+    'face_recognition', 
+    'torch', 
+    'torchvision', 
+    'tensorflow-gpu==1.15.0'
+]
+
+for submodule, subfolders in submodules.items():
+    submodule_packages = ['{}.{}'.format(submodules_root, submodule)]
+    submodule_packages.extend(['{}.{}.{}'.format(submodules_root, submodule, f) for f in subfolders])
+    all_packages.extend(submodule_packages)
+
 setup(
     name='ml4a',
     version='0.1',
@@ -8,29 +52,8 @@ setup(
     author='Gene Kogan',
     author_email='gene@genekogan.com',
     license='LGPL 2.0',
-    packages=['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules', 'ml4a.models.submodules.BASNet', 'ml4a.models.submodules.BASNet.model', 'ml4a.models.submodules.BASNet.pytorch_iou', 'ml4a.models.submodules.BASNet.pytorch_ssim', 'ml4a.models.submodules.glow', 'ml4a.models.submodules.glow.demo', 'ml4a.models.submodules.neural-style-pt', 'ml4a.models.submodules.stylegan2', 'ml4a.models.submodules.stylegan2.dnnlib', 'ml4a.models.submodules.stylegan2.dnnlib.tflib', 'ml4a.models.submodules.stylegan2.dnnlib.tflib.ops', 'ml4a.models.submodules.stylegan2.dnnlib.submission', 'ml4a.models.submodules.stylegan2.dnnlib.submission.internal', 'ml4a.models.submodules.stylegan2.metrics', 'ml4a.models.submodules.stylegan2.training'], 
-    install_requires=[
-        'tqdm',
-        'ipython',
-        'ipywidgets',
-        'gdown',
-        'matplotlib',
-        'moviepy',
-        'numpy',
-        'Pillow',
-        'opencv-python',
-        'imutils',
-        'scikit-image',
-        'scikit-learn',
-        'bs4',
-        'noise',
-        'lxml',
-        'dlib',
-        'face_recognition',
-        'torch',
-        'torchvision',
-        'tensorflow-gpu==1.15.0'
-    ],
+    packages=packages, 
+    install_requires=install_requires,
     zip_safe=False
 )
 
