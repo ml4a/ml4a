@@ -43,7 +43,7 @@ install_requires = [
 for submodule, subfolders in submodules.items():
     submodule_packages = ['{}.{}'.format(submodules_root, submodule)]
     submodule_packages.extend(['{}.{}.{}'.format(submodules_root, submodule, f) for f in subfolders])
-    all_packages.extend(submodule_packages)
+    packages.extend(submodule_packages)
 
 setup(
     name='ml4a',
