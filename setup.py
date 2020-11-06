@@ -7,7 +7,7 @@ submodules = {
     'deepdream': [],
     'glow': ['demo'],
     'idinvert_pytorch': ['boundaries', 'boundaries.stylegan_bedroom256', 'boundaries.stylegan_ffhq256', 'boundaries.stylegan_tower256', 'models', 'utils'],
-    'neural-style-pt': [],
+    'neural_style': [],
     'PhotoSketch': ['data', 'models', 'options', 'scripts', 'util'],
     'semantic-segmentation-pytorch': ['config', 'data', 'mit_semseg', 'mit_semseg.config', 'mit_semseg.lib', 'mit_semseg.lib.nn', 'mit_semseg.lib.nn.modules', 'mit_semseg.lib.nn.modules.tests', 'mit_semseg.lib.nn.parallel', 'mit_semseg.lib.utils', 'mit_semseg.lib.utils.data'],
     'SPADE': ['data', 'datasets', 'models', 'models.networks', 'models.networks.sync_batchnorm', 'options', 'trainers', 'util'],
