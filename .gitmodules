@@ -28,3 +28,6 @@
 [submodule "ml4a/models/submodules/Wav2Lip"]
 	path = ml4a/models/submodules/Wav2Lip
 	url = https://github.com/Rudrabha/Wav2Lip
+[submodule "ml4a/models/submodules/SPADE"]
+	path = ml4a/models/submodules/SPADE
+	url = https://github.com/genekogan/SPADE
