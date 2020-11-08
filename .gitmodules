@@ -28,3 +28,6 @@
 [submodule "ml4a/models/submodules/SPADE"]
 	path = ml4a/models/submodules/SPADE
 	url = https://github.com/genekogan/SPADE
+[submodule "ml4a/models/submodules/BASNet"]
+	path = ml4a/models/submodules/BASNet
+	url = https://www.github.com/NathanUA/BASNet

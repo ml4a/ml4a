@@ -1,11 +1,10 @@
+from localimport import localimport
 from ..utils import downloads
-from . import submodules
 
-
-with submodules.import_from('neural_style'):
+with localimport('submodules/neural_style') as _importer:
     from utils import *
+    from model import *
     from stylenet import *
-    from generate import *
 
 
 params = StylenetArgs()
@@ -22,7 +21,7 @@ def setup_neuralstyle():
     return model
 
 
-def run(config, img, title=None):
+def run(config, img=None, title=None):
     if model is None:
         setup_neuralstyle()
-    return style_transfer(model, config, img)
+    return style_transfer(model, config, img, title)

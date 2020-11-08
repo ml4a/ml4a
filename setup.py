@@ -27,6 +27,7 @@ install_requires = [
     'dill', 
     'opencv-python',
     'imutils', 
+    'localimport',
     'scikit-image', 
     'scikit-learn', 
     'librosa',

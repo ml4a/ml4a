@@ -7,12 +7,14 @@ import matplotlib.pyplot as pyplot
 import scipy
 from scipy.interpolate import interp1d
 import numpy as np
+from localimport import localimport
 
 from ..utils import downloads
 from .. import image
 from . import submodules
 
-with submodules.import_from('stylegan2'):
+#with localimport('submodules/stylegan2') as _importer:
+with submodules.import_from('stylegan2'):  # localimport fails here
     import pretrained_networks
     import dnnlib
     import dnnlib.tflib as tflib

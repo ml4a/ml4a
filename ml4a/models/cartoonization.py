@@ -2,10 +2,11 @@ import os
 import numpy as np
 import tensorflow as tf 
 from tqdm import tqdm
+from localimport import localimport
 
 from . import submodules
 
-with submodules.import_from('White-box-Cartoonization'):
+with localimport('submodules/White-box-Cartoonization') as _importer:
     from test_code import network
     from test_code import guided_filter
 

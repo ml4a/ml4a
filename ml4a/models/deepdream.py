@@ -1,10 +1,9 @@
+from localimport import localimport
 from ..utils import downloads
-from . import submodules
 
-
-with submodules.import_from('deepdream'):
-    from util import *
-    from deepdream import *
+with localimport('submodules/deepdream') as _importer:
+    from utils import *
+    from model import *
     from dream import *
     from bookmarks import *
 
@@ -25,4 +24,4 @@ def setup_deepdream():
 def run(config, img, title=None):
     if not model:
         setup_deepdream()
-    return run_deepdream(model, config, img, title)
+    return run_deepdream(model, config, img)

@@ -2,11 +2,11 @@ import os
 import hashlib
 from pathlib import Path
 import numpy as np
+from localimport import localimport
 
 from ..utils import downloads
-from . import submodules
 
-with submodules.import_from('idinvert_pytorch'):
+with localimport('submodules/idinvert_pytorch') as _importer:
     from models import model_settings
     model_settings.MODEL_DIR = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch')
     from utils.editor import manipulate
