@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 from localimport import localimport
 
+from . import submodules
 from ..utils import downloads
 
 with localimport('submodules/idinvert_pytorch') as _importer:

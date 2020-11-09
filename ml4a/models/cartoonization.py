@@ -45,6 +45,7 @@ def setup():
     sess = tf.Session(config=config)
 
     sess.run(tf.global_variables_initializer())
+    print("THE MODEL PATH IS ", model_path)
     saver.restore(sess, tf.train.latest_checkpoint(model_path))
     print("DOE SETTING UP")
     
