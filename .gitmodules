@@ -31,3 +31,6 @@
 [submodule "ml4a/models/submodules/BASNet"]
 	path = ml4a/models/submodules/BASNet
 	url = https://www.github.com/NathanUA/BASNet
+[submodule "ml4a/models/submodules/tacotron2"]
+	path = ml4a/models/submodules/tacotron2
+	url = https://github.com/NVIDIA/tacotron2
