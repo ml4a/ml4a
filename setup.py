@@ -18,6 +18,7 @@ submodules = {
 } 
 install_requires = [
     'tqdm',
+    'yacs',
     'ipython',
     'ipywidgets',
     'gdown',
