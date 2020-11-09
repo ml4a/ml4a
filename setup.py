@@ -12,6 +12,7 @@ submodules = {
     'semantic-segmentation-pytorch': ['config', 'data', 'mit_semseg', 'mit_semseg.config', 'mit_semseg.lib', 'mit_semseg.lib.nn', 'mit_semseg.lib.nn.modules', 'mit_semseg.lib.nn.modules.tests', 'mit_semseg.lib.nn.parallel', 'mit_semseg.lib.utils', 'mit_semseg.lib.utils.data'],
     'SPADE': ['data', 'datasets', 'models', 'models.networks', 'models.networks.sync_batchnorm', 'options', 'trainers', 'util'],
     'stylegan2': ['dnnlib', 'dnnlib.tflib', 'dnnlib.tflib.ops', 'dnnlib.submission', 'dnnlib.submission.internal', 'metrics', 'training'],
+    'tacotron2': ['text', 'waveglow'],
     'Wav2Lip': ['evaluation', 'evaluation.scores_LSE', 'face_detection', 'face_detection.detection', 'face_detection.detection.sfd', 'models'],
     'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search']
 } 
