@@ -66,30 +66,3 @@ def draw_landmarks(img, landmarks, color=(255,255,255,255), width=1):
     d.line(whole_face, fill=color, width=width)
     return img
 
-
-# def extract_face(img, target_encodings):
-#     x, y, w, h, landmarks = get_face(img, target_encodings)
-#     blank_img = Image.new('RGB', (img.width, img.height))
-#     img = draw_landmarks(blank_img, landmarks, color, width)
-#     return img
-
-
-# def get_crop_around_face(img, target_encodings, aspect_ratio, face_crop, face_crop_lerp):
-#     global jx0, jy0, jw0, jh0
-#     ix, iy, iw, ih, ilandmarks = get_face(img, target_encodings)
-#     if ilandmarks is None:
-#         return None, None, None, None
-#     if aspect_ratio > iw/ih:
-#         jw, jh = ih * aspect_ratio, ih
-#     else:
-#         jw, jh = iw, ih / aspect_ratio
-#     jw, jh = jw / face_crop, jh / face_crop
-#     jx, jy = ix - 0.5 * (jw - iw), iy - 0.5 * (jh - ih)
-#     if jx0 is None:
-#         jx0, jy0, jw0, jh0 = jx, jy, jw, jh
-#     jx0 = jx0 * (1.0 - face_crop_lerp) + jx * face_crop_lerp
-#     jy0 = jy0 * (1.0 - face_crop_lerp) + jy * face_crop_lerp
-#     jw0 = jw0 * (1.0 - face_crop_lerp) + jw * face_crop_lerp
-#     jh0 = jh0 * (1.0 - face_crop_lerp) + jh * face_crop_lerp
-#     return jx0, jy0, jw0, jh0
-        
