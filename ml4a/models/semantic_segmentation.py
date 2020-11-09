@@ -20,15 +20,17 @@ with localimport('submodules/semantic-segmentation-pytorch') as _importer:
     from mit_semseg.utils import colorEncode, find_recursive, setup_logger
     from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
     from mit_semseg.lib.utils import as_numpy
-    from mit_semseg.config import cfg
+    #from mit_semseg.config import cfg
 
-    
+
 segmentation_module = None
 
-# local repo files
-root = submodules.get_submodules_root('semantic-segmentation-pytorch')
-color_path = os.path.join(root, 'data/color150.mat')
-data_path = os.path.join(root, 'data/object150_info.csv')
+color_path = downloads.download_data_file(
+    'https://raw.githubusercontent.com/CSAILVision/semantic-segmentation-pytorch/master/data/color150.mat', 
+    'semantic-segmentation-pytorch/data/color150.mat')
+data_path = downloads.download_text_file(
+    'https://raw.githubusercontent.com/CSAILVision/semantic-segmentation-pytorch/master/data/object150_info.csv', 
+    'semantic-segmentation-pytorch/data/object150_info.csv')
 
 # colors and class names
 colors = loadmat(color_path)['colors']

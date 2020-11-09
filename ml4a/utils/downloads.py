@@ -1,6 +1,7 @@
 from pathlib import Path
 from collections import OrderedDict
 from torch.utils import model_zoo
+import urllib.request
 import zipfile
 import torch
 import os
@@ -60,6 +61,15 @@ def download_data_file(url, output_path, zip_file=False, overwrite=False):
             unzip(output_filename, output_folder)
     output = output_folder if zip_file else output_filename
     return output
+
+def download_text_file(url, output_path, overwrite=False):
+    output_folder, output_filename, output_exists = __process_output_path__(output_path, False)
+    if not output_exists or overwrite:
+        Path(output_folder).mkdir(parents=True, exist_ok=True)
+        filedata = urllib.request.urlopen(url)
+        with open(output_filename, 'wb') as f:
+            f.write(filedata.read())
+    return output_filename
 
 
 def download_neural_style(url, output_path):
