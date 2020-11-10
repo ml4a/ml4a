@@ -7,16 +7,10 @@ from localimport import localimport
 from . import submodules
 from ..utils import downloads
 
-with localimport('submodules/idinvert_pytorch') as _importer:
-    from models import model_settings
-    model_settings.MODEL_DIR = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch')
-    from utils.editor import manipulate
-    from utils.inverter import StyleGANInverter
-    from models.helper import build_generator
+inverted_code_dir = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch/reconstructions')
+model_dir = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch/pretrained')
 
-    
-available_models = ['styleganinv_ffhq256'] ####
-
+available_models = ['styleganinv_ffhq256', 'styleganinv_tower256', 'styleganinv_bedroom256']
 attributes = ['age', 'eyeglasses', 'gender', 'pose', 'expression']
 resolution = 256
 
@@ -24,6 +18,14 @@ inverter = None
 generator = None
 boundaries = None
 
+with localimport('submodules/idinvert_pytorch') as _importer:
+    from models import model_settings
+    model_settings.MODEL_DIR = model_dir
+    from utils.editor import manipulate
+    from utils.inverter import StyleGANInverter
+    from models.helper import build_generator
+
+    
 def setup_boundary_vectors():
     global boundaries
     root = submodules.get_submodules_root('idinvert_pytorch')
@@ -37,7 +39,19 @@ def setup_boundary_vectors():
         boundaries[attr] = [boundary, manipulate_layers]
 
 
-def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):
+def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):   
+    downloads.download_from_gdrive('1qQ-r7MYZ8ZcjQQFe17eQfJbOAuE3eS0y', 
+                                   'idinvert_pytorch/pretrained/vgg16.pth')
+    if model_name == 'styleganinv_ffhq256':
+        downloads.download_from_gdrive('1gij7xy05crnyA-tUTQ2F3yYlAlu6p9bO', 
+                                       'idinvert_pytorch/pretrained/styleganinv_ffhq256_encoder.pth')
+    elif model_name == 'styleganinv_tower256':
+        downloads.download_from_gdrive('1Pzkgdi3xctdsCZa9lcb7dziA_UMIswyS', 
+                                       'idinvert_pytorch/pretrained/styleganinv_tower256_encoder.pth')
+    elif model_name == 'styleganinv_bedroom256':
+        downloads.download_from_gdrive('1ebuiaQ7xI99a6ZrHbxzGApEFCu0h0X2s', 
+                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_encoder.pth')
+
     global inverter
     inverter = StyleGANInverter(
         model_name,
@@ -49,6 +63,16 @@ def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2)
 
     
 def setup_generator(model_name):
+    if model_name == 'styleganinv_ffhq256':
+        downloads.download_from_gdrive('1SjWD4slw612z2cXa3-n38JwKZXqDUerG', 
+                                       'idinvert_pytorch/pretrained/styleganinv_ffhq256_generator.pth')
+    elif model_name == 'styleganinv_tower256':
+        downloads.download_from_gdrive('1lI_OA_aN4-O3mXEPQ1Nv-6tdg_3UWcyN', 
+                                       'idinvert_pytorch/pretrained/styleganinv_tower256_generator.pth')
+    elif model_name == 'styleganinv_bedroom256':
+        downloads.download_from_gdrive('1ka583QwvMOtcFZJcu29ee8ykZdyOCcMS', 
+                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_generator.pth')
+
     global generator
     generator = build_generator(model_name)
 
@@ -92,7 +116,6 @@ def invert(model_name, target_image, redo=False, save=False):
 
     image_hash = hashlib.md5(target_image).hexdigest()
     
-    inverted_code_dir = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert/reconstructions')
     latent_code_path = os.path.join(inverted_code_dir, image_hash+'.npy')
     latent_code_found = os.path.exists(latent_code_path)
     

@@ -106,7 +106,10 @@ def crop_to_aspect_ratio(img, aspect_ratio):
 
 
 def display(images, animate=False, title=None, num_cols=4):
-    images = np.array(images)
+    if isinstance(images, list):
+        images = np.array([np.array(img) for img in images])
+    else:
+        images = np.array(images)
     ndim = np.array(images).ndim
     multiple_images = False
     if ndim == 2:
@@ -121,7 +124,9 @@ def display(images, animate=False, title=None, num_cols=4):
     elif ndim == 4:
         multiple_images = True
         num_channels = images.shape[-1]
-    if not multiple_images:
+    if multiple_images:
+        images = [np.array(img) for img in images]
+    else:
         images = np.expand_dims(images, axis=0)
     if animate:
         return frames_to_movie(images, fps=30)
