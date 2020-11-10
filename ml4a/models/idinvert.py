@@ -39,20 +39,32 @@ def setup_boundary_vectors():
         boundaries[attr] = [boundary, manipulate_layers]
 
 
-def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):   
-    downloads.download_from_gdrive('1qQ-r7MYZ8ZcjQQFe17eQfJbOAuE3eS0y', 
-                                   'idinvert_pytorch/pretrained/vgg16.pth')
+def download_pretrained_model(model_name):
     if model_name == 'styleganinv_ffhq256':
         downloads.download_from_gdrive('1gij7xy05crnyA-tUTQ2F3yYlAlu6p9bO', 
                                        'idinvert_pytorch/pretrained/styleganinv_ffhq256_encoder.pth')
+        downloads.download_from_gdrive('1SjWD4slw612z2cXa3-n38JwKZXqDUerG', 
+                               'idinvert_pytorch/pretrained/styleganinv_ffhq256_generator.pth')
+
     elif model_name == 'styleganinv_tower256':
         downloads.download_from_gdrive('1Pzkgdi3xctdsCZa9lcb7dziA_UMIswyS', 
                                        'idinvert_pytorch/pretrained/styleganinv_tower256_encoder.pth')
+        downloads.download_from_gdrive('1lI_OA_aN4-O3mXEPQ1Nv-6tdg_3UWcyN', 
+                                       'idinvert_pytorch/pretrained/styleganinv_tower256_generator.pth')
+
     elif model_name == 'styleganinv_bedroom256':
         downloads.download_from_gdrive('1ebuiaQ7xI99a6ZrHbxzGApEFCu0h0X2s', 
                                        'idinvert_pytorch/pretrained/styleganinv_bedroom256_encoder.pth')
+        downloads.download_from_gdrive('1ka583QwvMOtcFZJcu29ee8ykZdyOCcMS', 
+                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_generator.pth')
 
+    downloads.download_from_gdrive('1qQ-r7MYZ8ZcjQQFe17eQfJbOAuE3eS0y', 
+                                   'idinvert_pytorch/pretrained/vgg16.pth')
+
+
+def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):   
     global inverter
+    download_pretrained_model(model_name)
     inverter = StyleGANInverter(
         model_name,
         learning_rate=0.01,
@@ -63,17 +75,8 @@ def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2)
 
     
 def setup_generator(model_name):
-    if model_name == 'styleganinv_ffhq256':
-        downloads.download_from_gdrive('1SjWD4slw612z2cXa3-n38JwKZXqDUerG', 
-                                       'idinvert_pytorch/pretrained/styleganinv_ffhq256_generator.pth')
-    elif model_name == 'styleganinv_tower256':
-        downloads.download_from_gdrive('1lI_OA_aN4-O3mXEPQ1Nv-6tdg_3UWcyN', 
-                                       'idinvert_pytorch/pretrained/styleganinv_tower256_generator.pth')
-    elif model_name == 'styleganinv_bedroom256':
-        downloads.download_from_gdrive('1ka583QwvMOtcFZJcu29ee8ykZdyOCcMS', 
-                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_generator.pth')
-
     global generator
+    download_pretrained_model(model_name)
     generator = build_generator(model_name)
 
         
