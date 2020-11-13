@@ -4,7 +4,7 @@ import tensorflow as tf
 from tqdm import tqdm
 from localimport import localimport
 
-from . import submodules
+from ..utils import downloads
 
 with localimport('submodules/White-box-Cartoonization') as _importer:
     from test_code import network
@@ -29,39 +29,40 @@ def resize_crop(image):
 def setup():
     global sess, input_photo, final_out
     
-    root = submodules.get_submodules_root('White-box-Cartoonization')
-    model_path = os.path.join(root, 'test_code/saved_models')
+    model_subfolder = 'White-box-Cartoonization/saved_model'
+    model_fullpath = os.path.join(downloads.get_ml4a_downloads_folder(), model_subfolder)
     
+    downloads.download_data_file(
+        'https://raw.githubusercontent.com/SystemErrorWang/White-box-Cartoonization/master/test_code/saved_models/model-33999.data-00000-of-00001', 
+        os.path.join(model_subfolder, 'model-33999.data-00000-of-00001')
+    )
+    downloads.download_data_file(
+        'https://raw.githubusercontent.com/SystemErrorWang/White-box-Cartoonization/master/test_code/saved_models/model-33999.index', 
+        os.path.join(model_subfolder, 'model-33999.index')
+    )
+    downloads.download_text_file(
+        'https://raw.githubusercontent.com/SystemErrorWang/White-box-Cartoonization/master/test_code/saved_models/checkpoint', 
+        os.path.join(model_subfolder, 'checkpoint')
+    )
+
     input_photo = tf.placeholder(tf.float32, [None, None, None, 3])
     network_out = network.unet_generator(input_photo)
     final_out = guided_filter.guided_filter(input_photo, network_out, r=1, eps=5e-3)
 
-    all_vars = tf.trainable_variables()
+    all_vars = tf.compat.v1.trainable_variables()
     gene_vars = [var for var in all_vars if 'generator' in var.name]
-    saver = tf.train.Saver(var_list=gene_vars)
+    saver = tf.compat.v1.train.Saver(var_list=gene_vars)
     
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    sess = tf.Session(config=config)
+    sess = tf.compat.v1.Session(config=config)
+    sess.run(tf.compat.v1.global_variables_initializer())
 
-    sess.run(tf.global_variables_initializer())
-    
-    
-    
-    
-    # download model_path from github
-    
-    
-    
-    
-    
-    print("THE MODEL PATH IS ", model_path)
-    saver.restore(sess, tf.train.latest_checkpoint(model_path))
-    print("DOE SETTING UP")
+    saver.restore(sess, tf.train.latest_checkpoint(model_fullpath))
+
     
 def run(img):
     if sess is None:
-        print("MUST SETUP")
         setup()
 
     img = np.array(img)

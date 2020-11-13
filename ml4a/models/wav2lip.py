@@ -8,6 +8,7 @@ from tqdm import tqdm
 from localimport import localimport
 
 from .. import image
+from .. import audio as ml4a_audio
 from ..utils import downloads
 from . import submodules
 
@@ -166,7 +167,7 @@ def modify_frame(frame, resize_factor, rotate, crop):
     return frame
 
 
-def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop=None, box=None, fps=25, rotate=False):
+def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, resize_factor=1, crop=None, box=None, fps=25, rotate=False):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     img_size = 96
     mel_step_size = 16    
@@ -174,6 +175,17 @@ def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop
     nosmooth = False
     wav2lip_batch_size = 128
     face_det_batch_size = 16
+    
+    image_is_image = isinstance(input_video, (PIL.Image.Image, np.ndarray))
+    image_is_image_list = isinstance(input_video, list) and isinstance(input_video[0], (PIL.Image.Image, np.ndarray))
+    image_is_str = isinstance(input_video, str)
+    image_is_movieplayer = isinstance(input_video, image.MoviePlayer)
+
+    sound_is_sound = isinstance(input_audio, (torch.Tensor, np.ndarray))
+    sound_is_str = isinstance(input_audio, str)
+        
+    assert not (sound_is_sound and sampling_rate is None), \
+        'If setting input_audio directly to a waveform, must set sampling_rate!'
 
     if pads is None:
         pads = [0, 10, 0, 0]
@@ -182,12 +194,8 @@ def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop
     if box is None:
         box = [-1, -1, -1, -1]
     
-    input_is_image = isinstance(input_video, (PIL.Image.Image, np.ndarray))
-    input_is_image_list = isinstance(input_video, list) and isinstance(input_video[0], (PIL.Image.Image, np.ndarray))
-    input_is_str = isinstance(input_video, str)
-    input_is_movieplayer = isinstance(input_video, image.MoviePlayer)
     
-    if input_is_str:        
+    if image_is_str:        
         if not os.path.isfile(input_video):
             raise ValueError('No image or video found at {}'.format(input_video))
 
@@ -206,32 +214,43 @@ def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop
                 frame = modify_frame(frame, resize_factor, rotate, crop)
                 full_frames.append(frame)
     
-    elif input_is_image_list:
+    elif image_is_image_list:
         full_frames = [np.array(img)[...,[2,1,0]] for img in input_video]
         
-    elif input_is_image:
+    elif image_is_image:
         full_frames = [np.array(input_video)[...,[2,1,0]]]
     
-    elif input_is_movieplayer:
+    elif image_is_movieplayer:
         full_frames = []
         for f in range(input_video.num_frames):
             frame = input_video.get_frame(f+1)
             frame = modify_frame(frame, resize_factor, rotate, crop)
             full_frames.append(frame)
 
-    print ("Number of frames available for inference: "+str(len(full_frames)))
+    #print ("Number of frames available for inference: "+str(len(full_frames)))
 
     scratch_folder = downloads.get_ml4a_folder('scratch/wav2lip')
-    temp_video_file = os.path.join(scratch_folder, 'temp_video.avi')
+    temp_video_file = os.path.join(scratch_folder, 'temp_video.avi')    
     temp_audio_file = os.path.join(scratch_folder, 'temp_audio.wav')
-
-    if not input_audio.endswith('.wav'):
-        print('Extracting raw audio...')
-        command = 'ffmpeg -y -i {} -strict -2 {}'.format(input_audio, temp_audio_file)
-        subprocess.call(command, shell=True)
-        input_audio = temp_audio_file
-
-    wav = audio.load_wav(input_audio, 16000)
+    
+    if sound_is_str:
+        if input_audio.endswith('.wav'):
+            temp_audio_file = input_audio
+        else:
+            print('Extracting raw audio...')
+            command = 'ffmpeg -y -i {} -strict -2 {}'.format(input_audio, temp_audio_file)
+            subprocess.call(command, shell=True)
+    elif sound_is_sound:
+        if isinstance(input_audio, torch.Tensor):
+            input_audio = input_audio.cpu().numpy()
+        if input_audio.ndim > 1:
+            input_audio = input_audio[0]
+        print("LETS DO THIS")
+        print(ml4a_audio)
+        ml4a_audio.save(temp_audio_file, input_audio, sampling_rate=sampling_rate)
+    
+    input_audio = temp_audio_file
+    wav = audio.load_wav(temp_audio_file, 16000)
     mel = audio.melspectrogram(wav)
 
     if np.isnan(mel.reshape(-1)).sum() > 0:
@@ -248,7 +267,7 @@ def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop
         mel_chunks.append(mel[:, start_idx : start_idx + mel_step_size])
         i += 1
 
-    print("Length of mel chunks: {}".format(len(mel_chunks)))
+    #print("Length of mel chunks: {}".format(len(mel_chunks)))
 
     full_frames = full_frames[:len(mel_chunks)]
     gen = datagen(full_frames.copy(), mel_chunks,
@@ -284,5 +303,7 @@ def run(input_video, input_audio, output_video, pads=None, resize_factor=1, crop
             out.write(f)
 
     out.release()
+        
     command = 'ffmpeg -y -i {} -i {} -strict -2 -q:v 1 {}'.format(input_audio, temp_video_file, output_video)
-    subprocess.call(command, shell=True)
+    result = subprocess.call(command, shell=True)
+    #return result

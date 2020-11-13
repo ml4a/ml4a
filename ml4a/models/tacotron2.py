@@ -2,13 +2,12 @@ import numpy as np
 import torch
 import cv2
 import matplotlib.pylab as plt
-import scipy.io.wavfile
-import IPython.display
 from localimport import localimport
 
 from .. import image
 from ..utils import downloads
 from . import submodules
+
 
 with localimport('submodules/tacotron2') as _importer:
     from hparams import create_hparams
@@ -19,29 +18,6 @@ with localimport('submodules/tacotron2') as _importer:
     from text import text_to_sequence
     from waveglow.denoiser import Denoiser
     
-
-def plot_data(data, figsize=(16, 4)):
-    fig, axes = plt.subplots(1, len(data), figsize=figsize)
-    for i in range(len(data)):
-        axes[i].imshow(data[i], aspect='auto', origin='lower', 
-                       interpolation='none')
-
-        
-def display_audio(audio):
-    return IPython.display.Audio(
-        audio[0].data.cpu().numpy(), 
-        rate=hparams.sampling_rate
-    )
-
-
-def save_audio(filename, audio):
-    scipy.io.wavfile.write(
-        filename, 
-        hparams.sampling_rate, 
-        audio[0].data.cpu().numpy()
-    )
-
-
 
 model = None
 
@@ -80,15 +56,12 @@ def run(text, denoise=True):
     sequence = torch.autograd.Variable(torch.from_numpy(sequence)).cuda().long()
     mel_outputs, mel_outputs_postnet, _, alignments = model.inference(sequence)
 
-    #plot_data((mel_outputs.float().data.cpu().numpy()[0],
-    #           mel_outputs_postnet.float().data.cpu().numpy()[0],
-    #           alignments.float().data.cpu().numpy()[0].T))
-    
     with torch.no_grad():
         audio = waveglow.infer(mel_outputs_postnet, sigma=0.666)
 
     if denoise:
         audio = denoiser(audio, strength=0.01)[:, 0]
         
-    return audio
+    output = {'wav': audio, 'sampling_rate': hparams.sampling_rate}
+    return output
 
