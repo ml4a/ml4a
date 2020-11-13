@@ -82,6 +82,7 @@ def blend_images(img1, img2, blend_amt):
 
 
 def map_image(img, idx):  # should it be mod by h-1, w-1?
+    img = np.array(img)
     h, w = img.shape[0:2]
     idx = np.array(idx).reshape((h*w, 2))
     idx_mod = np.mod(idx,[h,w])  

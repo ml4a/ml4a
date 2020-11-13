@@ -34,3 +34,6 @@
 [submodule "ml4a/models/submodules/tacotron2"]
 	path = ml4a/models/submodules/tacotron2
 	url = https://github.com/NVIDIA/tacotron2
+[submodule "ml4a/models/submodules/FlowNetPytorch"]
+	path = ml4a/models/submodules/FlowNetPytorch
+	url = https://github.com/ClementPinard/FlowNetPytorch
