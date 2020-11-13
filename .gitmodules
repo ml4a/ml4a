@@ -37,3 +37,6 @@
 [submodule "ml4a/models/submodules/FlowNetPytorch"]
 	path = ml4a/models/submodules/FlowNetPytorch
 	url = https://github.com/ClementPinard/FlowNetPytorch
+[submodule "ml4a/models/submodules/ESRGAN"]
+	path = ml4a/models/submodules/ESRGAN
+	url = https://github.com/xinntao/ESRGAN
