@@ -11,7 +11,6 @@ from distutils.version import LooseVersion
 from localimport import localimport
 
 from .. import image
-from . import submodules
 from ..utils import downloads
 
 with localimport('submodules/semantic-segmentation-pytorch') as _importer:
@@ -27,10 +26,12 @@ segmentation_module = None
 
 color_path = downloads.download_data_file(
     'https://raw.githubusercontent.com/CSAILVision/semantic-segmentation-pytorch/master/data/color150.mat', 
-    'semantic-segmentation-pytorch/data/color150.mat')
+    'semantic-segmentation-pytorch/data/color150.mat'
+)
 data_path = downloads.download_text_file(
     'https://raw.githubusercontent.com/CSAILVision/semantic-segmentation-pytorch/master/data/object150_info.csv', 
-    'semantic-segmentation-pytorch/data/object150_info.csv')
+    'semantic-segmentation-pytorch/data/object150_info.csv'
+)
 
 # colors and class names
 colors = loadmat(color_path)['colors']
