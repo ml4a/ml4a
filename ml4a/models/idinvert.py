@@ -2,7 +2,6 @@ import os
 import hashlib
 from pathlib import Path
 import numpy as np
-from localimport import localimport
 
 from . import submodules
 from ..utils import downloads
@@ -18,7 +17,7 @@ inverter = None
 generator = None
 boundaries = None
 
-with localimport('submodules/idinvert_pytorch') as _importer:
+with submodules.localimport('submodules/idinvert_pytorch') as _importer:
     from models import model_settings
     model_settings.MODEL_DIR = model_dir
     from utils.editor import manipulate

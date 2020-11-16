@@ -1,7 +1,7 @@
-from localimport import localimport
 from ..utils import downloads
+from . import submodules
 
-with localimport('submodules/neural_style') as _importer:
+with submodules.localimport('submodules/neural_style') as _importer:
     from utils import *
     from model import *
     from stylenet import *

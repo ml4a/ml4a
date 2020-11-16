@@ -5,13 +5,12 @@ import cv2
 import torch
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-from localimport import localimport
 
 from ..utils import downloads
 from . import submodules
 
 #with submodules.import_from('PhotoSketch'):  # localimport fails here   
-with localimport('submodules/FlowNetPytorch') as _importer:
+with submodules.localimport('submodules/FlowNetPytorch') as _importer:
     import models
     import flow_transforms
     from util import flow2rgb

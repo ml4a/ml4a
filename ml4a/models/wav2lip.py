@@ -5,14 +5,13 @@ import PIL
 import cv2
 import torch
 from tqdm import tqdm
-from localimport import localimport
 
 from .. import image
 from .. import audio as ml4a_audio
 from ..utils import downloads
 from . import submodules
 
-#with localimport('submodules/Wav2Lip') as _importer:
+#with submodules.localimport('submodules/Wav2Lip') as _importer:
 with submodules.import_from('Wav2Lip'):  # localimport fails here   
     import audio
     import face_detection

@@ -3,12 +3,12 @@ from PIL import Image
 import torch
 from torchvision import transforms
 from torch.autograd import Variable
-from localimport import localimport
 
 from ..utils import downloads
 from .. import image
+from . import submodules
 
-with localimport('submodules/BASNet') as _importer:
+with submodules.localimport('submodules/BASNet') as _importer:
     from data_loader import RescaleT, ToTensorLab
     from model import BASNet
 

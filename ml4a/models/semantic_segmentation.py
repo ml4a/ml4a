@@ -8,12 +8,13 @@ import torchvision
 from tqdm import tqdm
 from scipy.io import loadmat
 from distutils.version import LooseVersion
-from localimport import localimport
 
 from .. import image
+from . import submodules
 from ..utils import downloads
 
-with localimport('submodules/semantic-segmentation-pytorch') as _importer:
+#with submodules.import_from('semantic-segmentation-pytorch'):
+with submodules.localimport('submodules/semantic-segmentation-pytorch') as _importer:
     from mit_semseg.dataset import TestDataset
     from mit_semseg.models import ModelBuilder, SegmentationModule
     from mit_semseg.utils import colorEncode, find_recursive, setup_logger

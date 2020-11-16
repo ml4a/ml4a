@@ -2,14 +2,13 @@ import numpy as np
 import torch
 import cv2
 import matplotlib.pylab as plt
-from localimport import localimport
+#from localimport import localimport
 
 from .. import image
 from ..utils import downloads
 from . import submodules
 
-
-with localimport('submodules/tacotron2') as _importer:
+with submodules.localimport('submodules/tacotron2') as _importer:
     from hparams import create_hparams
     from model import Tacotron2
     from layers import TacotronSTFT, STFT
@@ -39,7 +38,7 @@ def setup():
         gdrive_fileid='1rpK8CzAAirq9sWZhe9nlfvxMF1dRgFbF',
         output_path='tacotron2/waveglow_256channels_universal_v5.pt')
 
-    with localimport('submodules/tacotron2/waveglow') as _importer:
+    with submodules.localimport('submodules/tacotron2/waveglow') as _importer:
         waveglow_ = torch.load(waveglow_path)
         waveglow = waveglow_['model']
     waveglow.cuda().eval().half()

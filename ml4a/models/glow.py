@@ -1,12 +1,12 @@
 import numpy as np
 import tensorflow as tf
 from threading import Lock
-from localimport import localimport
 
 from ..utils import downloads
 from .. import image
+from . import submodules
 
-with localimport('submodules/glow') as _importer:
+with submodules.localimport('submodules/glow') as _importer:
     pass
 
 

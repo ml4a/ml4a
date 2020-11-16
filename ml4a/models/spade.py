@@ -2,13 +2,12 @@ import os
 import sys
 import numpy as np
 from PIL import Image
-from localimport import localimport
 
 from ..utils import EasyDict
 from ..utils import downloads
 from . import submodules
 
-#with localimport('submodules/SPADE') as _importer:
+#with submodules.localimport('submodules/SPADE') as _importer:
 with submodules.import_from('SPADE'):  # localimport fails here    
     from options.test_options import TestOptions
     from models.pix2pix_model import Pix2PixModel

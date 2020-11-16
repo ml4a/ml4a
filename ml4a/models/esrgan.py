@@ -1,14 +1,13 @@
 import os
 import numpy as np
 import torch
-from localimport import localimport
 
 from ..utils import downloads
 from . import submodules
 from .. import image
 
-with submodules.import_from('ESRGAN'):  # localimport fails here   
-#with localimport('submodules/ESRGAN') as _importer:
+#with submodules.import_from('ESRGAN'):  # localimport fails here   
+with submodules.localimport('submodules/ESRGAN') as _importer:
     import RRDBNet_arch as arch
 
 

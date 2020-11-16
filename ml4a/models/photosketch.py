@@ -2,12 +2,11 @@ import numpy as np
 import torch
 from PIL import Image
 from types import SimpleNamespace
-from localimport import localimport
 
 from ..utils import downloads
 from . import submodules
 
-#with localimport('submodules/PhotoSketch') as _importer:
+#with submodules.localimport('submodules/PhotoSketch') as _importer:
 with submodules.import_from('PhotoSketch'):  # localimport fails here   
     from models.models import create_model
     import util.util as util

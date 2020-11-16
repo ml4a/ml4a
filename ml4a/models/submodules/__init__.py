@@ -1,6 +1,7 @@
 import os
 import sys
 from .. import submodules
+from .localimport import localimport
 
 
 def get_submodules_root(submodule_name):

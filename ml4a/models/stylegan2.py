@@ -7,13 +7,12 @@ import matplotlib.pyplot as pyplot
 import scipy
 from scipy.interpolate import interp1d
 import numpy as np
-from localimport import localimport
 
 from ..utils import downloads
 from .. import image
 from . import submodules
 
-#with localimport('submodules/stylegan2') as _importer:
+#with submodules.localimport('submodules/stylegan2') as _importer:
 with submodules.import_from('stylegan2'):  # localimport fails here
     import pretrained_networks
     import dnnlib
@@ -64,19 +63,19 @@ def get_pretrained_model(model_name):
 #         pyplot.figure(figsize=(int(4 * float(w)/h * num_cols), 4))
 #         pyplot.imshow(img1)
 
-        
+       
+def run(latents, labels, truncation=1.0):
+    print("minibatch 8")
+    images = Gs.run(latents, labels, truncation_psi=truncation, minibatch_size=8, **Gs_syn_kwargs) # [minibatch, height, width, channel]
+    return images, latents
+
+
 def random_sample(num_images, label, truncation=1.0, seed=None):
-    global Gs, Gs_syn_kwargs
     seed = seed if seed else np.random.randint(100)
     rnd = np.random.RandomState(int(seed))
     latents = rnd.randn(num_images, *Gs.input_shape[1:]) # [minibatch, component]
     labels = np.zeros((num_images, 7))
-    if type(label) == list:
-        labels[:, :] = label
-    else:    
-        labels[:, label] = 1
-    images = Gs.run(latents, labels, truncation_psi=truncation, **Gs_syn_kwargs) # [minibatch, height, width, channel]
-    return images, latents
+    return run(latents, labels, truncation)
 
 
 def interpolated_matrix_between(start, end, num_frames):

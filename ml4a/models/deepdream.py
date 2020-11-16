@@ -1,7 +1,7 @@
-from localimport import localimport
 from ..utils import downloads
+from . import submodules
 
-with localimport('submodules/deepdream') as _importer:
+with submodules.localimport('submodules/deepdream') as _importer:
     from utils import *
     from model import *
     from dream import *
