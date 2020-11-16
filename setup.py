@@ -26,7 +26,6 @@ install_requires = [
     'ipython',
     'ipywidgets',
     'librosa',
-    'localimport',
     'lxml', 
     'matplotlib',
     'moviepy',
