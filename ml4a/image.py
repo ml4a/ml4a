@@ -139,6 +139,7 @@ def display(images, animate=False, title=None, num_cols=4):
         img_row = np.concatenate([img for img in images[idx1:idx2]], axis=1)
         if num_channels == 1:
             img_row = np.repeat(img_row, 3, axis=-1)
+            num_channels = 3
         whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, num_channels))
         img_row = np.concatenate([img_row, whitespace], axis=1)
         img_row = Image.fromarray(img_row.astype(np.uint8)).convert('RGB')

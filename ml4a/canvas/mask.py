@@ -7,6 +7,7 @@ import numpy as np
 import sklearn.cluster
 import cv2
 
+from ..models import basnet
 from ..utils.downloads import *
 from ..utils.console import *
 from ..utils import EasyDict
@@ -61,6 +62,7 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
 
 def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
     masks = masks if isinstance(masks, list) else [masks]
+    masks = [get_mask(m, 0) if isinstance(m, dict) else m for m in masks]
     animate = animate if len(masks)>1 else False
     frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
     if animate:
@@ -180,7 +182,7 @@ def mask_image_manual(size, num_channels, image, thresholds, blur_k, n_dilations
     return mask
 
 
-def mask_image_auto(size, num_channels, image, blur_k, n_dilations):
+def mask_image_auto(size, num_channels, image, blur_k):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
     img = load_image(image) if isinstance(image, str) else image
@@ -245,6 +247,18 @@ def mask_image_kmeans(size, num_channels, image, blur_k, n_dilations, prev_mask=
             channel_mask = cv2.dilate(channel_mask, (3, 3))    
         mask[:,:,c] = channel_mask
 
+    return mask
+
+
+def mask_image_basnet(size, image):
+    (w, h), n = size, 2
+    mask = np.zeros((h, w, n))
+    img = load_image(image) if isinstance(image, str) else image
+    img = resize(img, size)
+    img = np.array(img)[:, :, ::-1]
+    img = crop_to_aspect_ratio(img, float(w)/h)
+    mask[:,:,0] = basnet.get_foreground(img)[:,:,0]/255.0
+    mask[:,:,1] = 1.0-mask[:,:,0]
     return mask
 
 
@@ -319,7 +333,7 @@ def get_mask(mask, t=0):
         m.image = m.image if 'image' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
         is_movie = isinstance(m.image, MoviePlayer) or type(m.image).__name__ == 'MoviePlayer'
         m.image = m.image.get_frame(t) if is_movie else m.image
-        assert m.method in ['kmeans', 'threshold', 'auto'], \
+        assert m.method in ['kmeans', 'threshold', 'auto', 'basnet'], \
             'Invalid method %s. Options are (kmeans, threshold, auto)'%m.method
 
         if m.method == 'kmeans':        
@@ -327,8 +341,8 @@ def get_mask(mask, t=0):
                 size=m.size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
-                blur_k=m.blur_k, 
-                n_dilations=m.n_dilations, 
+                blur_k=m.blur_k,
+                n_dilations=m.n_dilations,
                 prev_mask=m.prev_mask
             )
 
@@ -347,10 +361,15 @@ def get_mask(mask, t=0):
                 size=m.size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
-                blur_k=m.blur_k, 
-                n_dilations=m.n_dilations
+                blur_k=m.blur_k
             )
-        
+
+        elif m.method == 'basnet':
+            masks = mask_image_basnet(
+                size=m.size, 
+                image=m.image
+            )
+
     if m.normalize:
         mask_sum = np.maximum(
             np.ones(masks.shape[0:2]), 
