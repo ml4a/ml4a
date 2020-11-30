@@ -83,6 +83,7 @@ def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30)
     
 
 def mask_arcs(size, num_channels, center, radius, period, t, blend=0.0, inwards=False, reverse=False):
+    blend += 1e-8  # hack to fix bugs
     (w, h), (ctr_x, ctr_y), n = size, center, num_channels    
     rad = radius * n
     mask = np.zeros((h, w, n))
@@ -102,6 +103,9 @@ def mask_arcs(size, num_channels, center, radius, period, t, blend=0.0, inwards=
 
 
 def mask_rects(size, num_channels, p1, p2, width, period, t, blend=0.0, reverse=False):
+    p2 = (p2[0] + 1e-8 if p2[0]==p1[0] else p2[0],
+          p2[1] + 1e-8 if p2[1]==p1[1] else p2[1])  # hack to fix bugs
+    blend += 1e-8  # hack to fix bugs
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
     length = ((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)**0.5
@@ -262,17 +266,19 @@ def mask_image_basnet(size, image):
     return mask
 
 
-def get_mask(mask, t=0):
+def get_mask(mask, size=None, t=0):
     m = EasyDict(mask)
+    
+    if size is None:
+        size = m.size if 'size' in m else (512, 512)
 
-    m.size = m.size if 'size' in m else (512, 512)
     m.num_channels = m.num_channels if 'num_channels' in m else 1
     m.period = m.period if 'period' in m else 1e8
     m.normalize = m.normalize if 'normalize' in m else False
     
     if m.type == 'solid': 
         masks = mask_identity(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels
         )
    
@@ -282,7 +288,7 @@ def get_mask(mask, t=0):
         m.cross_fade = m.cross_fade if 'cross_fade' in m else False
         
         masks = mask_interpolation(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             period=m.period, t=t, 
             blend=m.blend, 
@@ -298,7 +304,7 @@ def get_mask(mask, t=0):
         m.reverse = m.reverse if 'reverse' in m else False
 
         masks = mask_arcs(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             center=m.center, 
             radius=m.radius, 
@@ -316,7 +322,7 @@ def get_mask(mask, t=0):
         m.reverse = m.reverse if 'reverse' in m else False
 
         masks = mask_rects(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             p1=m.p1, p2=m.p2, 
             width=m.width, 
@@ -338,7 +344,7 @@ def get_mask(mask, t=0):
 
         if m.method == 'kmeans':        
             masks = mask_image_kmeans(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
                 blur_k=m.blur_k,
@@ -348,7 +354,7 @@ def get_mask(mask, t=0):
 
         elif m.method == 'threshold':
             masks = mask_image_manual(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
                 thresholds=m.thresholds, 
@@ -358,7 +364,7 @@ def get_mask(mask, t=0):
             
         elif m.method == 'auto':
             masks = mask_image_auto(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
                 blur_k=m.blur_k
@@ -366,7 +372,7 @@ def get_mask(mask, t=0):
 
         elif m.method == 'basnet':
             masks = mask_image_basnet(
-                size=m.size, 
+                size=size, 
                 image=m.image
             )
 

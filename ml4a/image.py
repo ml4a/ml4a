@@ -12,7 +12,7 @@ Image.MAX_IMAGE_PIXELS = 1e9
     
 
 
-def load_image(img, image_size=None, to_numpy=False, normalize=False):
+def load_image(img, image_size=None, to_numpy=False, normalize=False, autocrop=False):
     if isinstance(img, str):
         if is_url(img):
             img = url_to_image(img)
@@ -23,6 +23,9 @@ def load_image(img, image_size=None, to_numpy=False, normalize=False):
     elif isinstance(img, np.ndarray):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     if image_size is not None and isinstance(image_size, tuple):
+        if autocrop:
+            aspect = float(image_size[0])/image_size[1]
+            img = crop_to_aspect_ratio(img, aspect)
         img = resize(img, image_size)
     elif image_size is not None and not isinstance(image_size, tuple):
         aspect = get_aspect_ratio(img)
