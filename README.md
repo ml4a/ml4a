@@ -2,13 +2,14 @@
   <br>
   <a href="https://ml4a.net/"><img src="https://pbs.twimg.com/profile_images/717391151041540096/K3Z09zCg_400x400.jpg" alt="ml4a" width="200"></a>
   <br>
-  machine learning for artists
+  Machine Learning for Artists
   <br>
 </h1>
 <div align="center">
     <a href="https://ml-4a.slack.com/"><img src="https://img.shields.io/badge/chat-on%20slack-7A5979.svg" /></a> 
     <a href="https://mybinder.org/v2/gh/ml4a/ml4a/ml4a.net"><img src="https://mybinder.org/badge.svg" /></a> 
     <a href="http://colab.research.google.com/github/ml4a/ml4a/blob/ml4a.net"><img src="https://colab.research.google.com/assets/colab-badge.svg" /></a>
+    <a href="https://twitter.com/ml4a_"><img src="https://img.shields.io/twitter/follow/ml4a_?label=Follow&style=social"></a>
 </div>
 
 [ml4a](https://ml4a.net) is a Python library for making art with machine learning. It features:
