@@ -16,8 +16,35 @@
 * an API wrapping popular deep learning models with creative applications, including [StyleGAN2](https://github.com/NVLabs/stylegan2/), [SPADE](https://github.com/NVlabs/SPADE), [Neural Style Transfer](https://github.com/genekogan/neural_style), [DeepDream](https://github.com/genekogan/deepdream), and [many others](https://github.com/ml4a/ml4a/tree/master/ml4a/models/submodules).
 * a collection of [Jupyter notebooks](https://github.com/ml4a/ml4a-guides/tree/ml4a.net/examples) explaining the basics of deep learning for beginners, and providing [recipes for using the materials creatively](https://github.com/ml4a/ml4a-guides/tree/ml4a.net/examples/models).
 
+## Example
+
+ml4a bundles the source code of various open source repositories as [git submodules](https://github.com/ml4a/ml4a-guides/tree/ml4a.net/ml4a/models/submodules) and contains wrappers to streamline and simplify them. For example, to generate sample images with StyleGAN2:
+
+```
+from ml4a import image
+from ml4a.models import stylegan2
+
+network_pkl = stylegan2.get_pretrained_model('ffhq')
+stylegan2.load_model(network_pkl)
+
+samples, _ = stylegan2.random_sample(3, labels=None, truncation=1.0)
+image.display(samples)
+```
+
+Every model in `ml4a.models`, including the `stylegan2` module above, imports all of the original repository's code into its namespace, allowing low-level access.
+
+## Support ml4a
+
+### Become a sponsor
+
+You can support ml4a by donating through GitHub sponsors. 
+
+### How to contribute
+
+Join the Slack.
+Contribute to the code.
 
 
-### License
+## License
 
 ml4a itself is [licensed MIT](https://github.com/ml4a/ml4a/blob/master/LICENSE.txt), but you are also bound to the licenses of any [models]https://github.com/ml4a/ml4a/tree/master/ml4a/models/submodules) you use.
