@@ -52,7 +52,7 @@ setup(
     name='ml4a',
     version='0.1',
     description='A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples',
-    url='http://github.com/ml4a/ml4a-guides',
+    url='http://github.com/ml4a/ml4a',
     author='Gene Kogan',
     author_email='gene@genekogan.com',
     license='LGPL 2.0',
