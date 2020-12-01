@@ -6,6 +6,7 @@ import matplotlib.pylab as plt
 
 from .. import image
 from ..utils import downloads
+from ..utils import EasyDict
 from . import submodules
 
 with submodules.localimport('submodules/tacotron2') as _importer:
@@ -61,6 +62,6 @@ def run(text, denoise=True):
     if denoise:
         audio = denoiser(audio, strength=0.01)[:, 0]
         
-    output = {'wav': audio, 'sampling_rate': hparams.sampling_rate}
+    output = EasyDict({'wav': audio, 'sampling_rate': hparams.sampling_rate})
     return output
 

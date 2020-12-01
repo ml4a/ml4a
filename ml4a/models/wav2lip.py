@@ -179,7 +179,7 @@ def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, r
     image_is_image_list = isinstance(input_video, list) and isinstance(input_video[0], (PIL.Image.Image, np.ndarray))
     image_is_str = isinstance(input_video, str)
     image_is_movieplayer = isinstance(input_video, image.MoviePlayer)
-
+    
     sound_is_sound = isinstance(input_audio, (torch.Tensor, np.ndarray))
     sound_is_str = isinstance(input_audio, str)
         
@@ -244,8 +244,7 @@ def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, r
             input_audio = input_audio.cpu().numpy()
         if input_audio.ndim > 1:
             input_audio = input_audio[0]
-        print("LETS DO THIS")
-        print(ml4a_audio)
+
         ml4a_audio.save(temp_audio_file, input_audio, sampling_rate=sampling_rate)
     
     input_audio = temp_audio_file

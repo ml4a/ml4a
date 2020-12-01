@@ -164,7 +164,6 @@ def generate_interpolation_video(output_path, labels, truncation=1, duration_sec
         
     clip = moviepy.editor.VideoClip(make_frame, duration=duration_sec)
     clip.write_videofile(output_path, fps=mp4_fps, codec='libx264', bitrate=mp4_bitrate)
-    print("SAVE STYLEGAN TO ", output_path)
     return output_path
 
 #    cmd = 'ffmpeg -y -i "%s" -c:v libx264 -pix_fmt yuv420p "%s";ls "%s"' % (os.path.join(result_subdir, mp4_name_temp), os.path.join(result_subdir, mp4_name), os.path.join(result_subdir, mp4_name_temp))

@@ -5,6 +5,19 @@ import librosa
 import librosa.display
 import scipy.io.wavfile
     
+from .utils import downloads
+
+sample_audio_files = {
+    'migi.mp4': '1xAENveKZ0aV-qhH5KGy9aROfWEOkui02'
+}
+
+
+def sample_audio():
+    filename = 'migi.mp4'
+    audio_path = downloads.download_from_gdrive(
+        gdrive_fileid=sample_audio_files[filename],
+        output_path='sample_images/%s'%filename)
+    return __preprocess_wav__(audio_path)
 
 
 def plot(wav, sampling_rate=None):
