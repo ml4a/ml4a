@@ -9,6 +9,7 @@ from . import submodules
 with submodules.localimport('submodules/glow') as _importer:
     pass
 
+# todo: wrong version of blocksparse doesn't let you use optimized pb
 
 lock = Lock()
 sess, update_feed = None, None

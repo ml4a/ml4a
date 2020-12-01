@@ -8,8 +8,21 @@ from io import BytesIO
 import IPython
 import moviepy.editor as mpe
 
+from .utils import downloads
+
 Image.MAX_IMAGE_PIXELS = 1e9
-    
+
+sample_images = {
+    'escher_sphere.jpg': '1pXYUSTfVDhJSOES0L0LEhf8A1lB28S4t',
+    'frida_kahlo.jpg': '1JbTCTqApHJW6m4Fw6cH_dtgcIp0oKXcB',
+    'hokusai.jpg': '1j7UzCT7q3EKCkyKh5QgIApdMi3j_iAdT',
+    'monalisa.jpg': '1WZgqATI5dKDwOpkLfOhuBOvn4zt4UcTa',
+    'starry_night.jpg': '1LLV7lyuCPOCDa5c7CkWjSfeckXBou1W7',
+    'teddybear_frame1.png': '1e9cPyDMdsVIF26RI6htlALExiHbCPiXW',
+    'teddybear_frame2.png': '1iL8r4LxRKNZH9xf0qa1bLW-hDXU2-gT8',
+    'the_scream.jpg': '1jrhDwRidBbgv7Ki2yBfyMhubbnD2LHAY',
+    'tubingen.jpg': '19lf288HWdzgSP4B8OQfHPv1un9ljZVJR'
+}
 
 
 def load_image(img, image_size=None, to_numpy=False, normalize=False, autocrop=False):
@@ -203,7 +216,28 @@ def frames_to_movie(frames, fps=30):
     IPython.display.clear_output()
     return disp_clip
 
-    
+
+def load_sample_image(filename, size=None):
+    assert filename in get_sample_images(), \
+        '%s not found in sample images. Available images are %s' % (filename, ', '.join(get_sample_images()))
+    sample_image_path = downloads.download_from_gdrive(
+        gdrive_fileid=sample_images[filename],
+        output_path='sample_images/%s'%filename)
+    return load_image(sample_image_path, size)
+
+
+def get_sample_images():
+    return sample_images.keys()
+
+
+def escher(size=None): return load_sample_image('escher_sphere.jpg', size)
+def fridakahlo(size=None): return load_sample_image('frida_kahlo.jpg', size)
+def hokusai(size=None): return load_sample_image('hokusai.jpg', size)
+def monalisa(size=None): return load_sample_image('monalisa.jpg', size)
+def starrynight(size=None): return load_sample_image('starry_night.jpg', size)
+def scream(size=None): return load_sample_image('the_scream.jpg', size)
+def tubingen(size=None): return load_sample_image('tubingen.jpg', size)
+        
 
 class MoviePlayer:
     

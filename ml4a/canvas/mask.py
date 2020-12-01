@@ -35,7 +35,7 @@ def image_to_mask(img):
     return mask
 
 
-def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
+def generate_mask_frames(masks, flatten_blend=False, merge=True):
     masks = masks if isinstance(masks, list) else [masks]
     color_labels = default_color_labels
     frames = []
@@ -46,7 +46,7 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
             mask_arr[:, c * w:(c+1)*w] = mask[:, :, c]
         if flatten_blend:
             mask_arr = 0.5*(mask_arr>0.0)+0.5*(mask_arr==1.0)
-        if draw_rgb:    
+        if merge:    
             mask_sum = np.sum(mask, axis=2)
             mask_norm = mask / mask_sum[:, :, np.newaxis] 
             mask_frame = np.sum(
@@ -55,16 +55,16 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
                  for c in range(nc)], 
                 axis=0).transpose((1,2,0))
         else:
-            mask_frame = 255 * mask if draw_rgb else 255 * mask_arr
+            mask_frame = 255 * mask if merge else 255 * mask_arr
         frames.append(mask_frame)
     return frames
 
 
-def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
+def view_mask(masks, flatten_blend=False, merge=True, animate=True, fps=30):
     masks = masks if isinstance(masks, list) else [masks]
     masks = [get_mask(m, 0) if isinstance(m, dict) else m for m in masks]
     animate = animate if len(masks)>1 else False
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
+    frames = generate_mask_frames(masks, flatten_blend, merge)
     if animate:
         return frames_to_movie(frames, fps=fps)
     else:
@@ -72,8 +72,8 @@ def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
             display(frame)
     
     
-def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30):
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
+def save_mask_video(filename, masks, flatten_blend=False, merge=True, fps=30):
+    frames = generate_mask_frames(masks, flatten_blend, merge)
     clip = ImageSequenceClip(frames, fps=fps)
     folder = os.path.dirname(filename)
     if folder and not os.path.isdir(folder):
@@ -269,7 +269,7 @@ def mask_image_basnet(size, image):
 def get_mask(mask, size=None, t=0):
     m = EasyDict(mask)
     
-    if size is None:
+    if size is None and m.type != 'image':
         size = m.size if 'size' in m else (512, 512)
 
     m.num_channels = m.num_channels if 'num_channels' in m else 1
@@ -342,6 +342,9 @@ def get_mask(mask, size=None, t=0):
         assert m.method in ['kmeans', 'threshold', 'auto', 'basnet'], \
             'Invalid method %s. Options are (kmeans, threshold, auto)'%m.method
 
+        if size is None:
+            size = get_size(m.image)
+        
         if m.method == 'kmeans':        
             masks = mask_image_kmeans(
                 size=size, 

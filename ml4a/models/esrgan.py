@@ -26,11 +26,6 @@ def setup():
 #         '1pJ_T-V1dpb1ewoEra1TGSWl5e6H7M4NN', 
 #         os.path.join('ESRGAN', 'RRDB_PSNR_x4.pth'))
 
-
-#     model_dir = '/home/bzion/.ml4a/models/ESRGAN'
-#     model_name = 'RRDB_ESRGAN_x4' # RRDB_ESRGAN_x4.pth RRDB_PSNR_x4.pth
-#     model_path = '{}/{}.pth'.format(model_dir, model_name)  # models/RRDB_ESRGAN_x4.pth OR models/RRDB_PSNR_x4.pth
-
     model = arch.RRDBNet(3, 3, 64, 23, gc=32)
     model.load_state_dict(torch.load(model_path), strict=True)
     model.eval()
@@ -45,7 +40,6 @@ def run(img):
         img = image.load_image(img)
 
     img = np.array(img)
-    print('img is ', img.shape)
     img = img * 1.0 / 255
     img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
     img_LR = img.unsqueeze(0)

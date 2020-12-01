@@ -12,6 +12,8 @@ from ..utils import downloads
 from .. import image
 from . import submodules
 
+# todo: absorb latent code to ml4a.utils.latents
+
 #with submodules.localimport('submodules/stylegan2') as _importer:
 with submodules.import_from('stylegan2'):  # localimport fails here
     import pretrained_networks

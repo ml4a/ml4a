@@ -24,4 +24,4 @@ def setup_deepdream():
 def run(config, img, title=None):
     if not model:
         setup_deepdream()
-    return run_deepdream(model, config, img)
+    return run_deepdream(model, config, img, title)
