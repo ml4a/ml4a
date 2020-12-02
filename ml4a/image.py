@@ -123,7 +123,12 @@ def crop_to_aspect_ratio(img, aspect_ratio):
 
 def display(images, animate=False, title=None, num_cols=4):
     if isinstance(images, list):
-        images = np.array([np.array(img) for img in images])
+        num_image_sizes = len(set([np.array(img).shape for img in images]))
+        if num_image_sizes > 1:
+            images = concatenate_images(images)        
+        else:
+            images = [np.array(img) for img in images]
+        images = np.array(images)
     else:
         images = np.array(images)
     ndim = np.array(images).ndim
@@ -222,7 +227,7 @@ def load_sample_image(filename, size=None):
         '%s not found in sample images. Available images are %s' % (filename, ', '.join(get_sample_images()))
     sample_image_path = downloads.download_from_gdrive(
         gdrive_fileid=sample_images[filename],
-        output_path='sample_images/%s'%filename)
+        output_path='_data/sample_images/%s'%filename)
     return load_image(sample_image_path, size)
 
 

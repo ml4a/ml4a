@@ -6,16 +6,60 @@ import numpy as np
 from . import submodules
 from ..utils import downloads
 
-inverted_code_dir = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch/reconstructions')
-model_dir = os.path.join(downloads.get_ml4a_downloads_folder(), 'idinvert_pytorch/pretrained')
+inverted_code_dir = os.path.join(
+    downloads.get_ml4a_scratch_folder(), 
+    'idinvert_pytorch/reconstructions'
+)
 
-available_models = ['styleganinv_ffhq256', 'styleganinv_tower256', 'styleganinv_bedroom256']
-attributes = ['age', 'eyeglasses', 'gender', 'pose', 'expression']
+model_dir = os.path.join(
+    downloads.get_ml4a_downloads_folder(), 
+    'idinvert_pytorch'
+)
+
 resolution = 256
+    
+models = {
+    'bedroom': {
+        'name': 'styleganinv_bedroom256',
+        'inverter': '1ebuiaQ7xI99a6ZrHbxzGApEFCu0h0X2s',
+        'generator': '1ka583QwvMOtcFZJcu29ee8ykZdyOCcMS',
+        'attributes': {
+            'cloth': '1PiOFd71eYTrJclwptYyxqbLBhUSQ0obT', 
+            'cluttered_space': '1RBWZKE_NlI2cj4aG50VBVAFQZjthsEwL', 
+            'indoor_lighting': '1z-egLTDGgJsHWiqCO2bQgFW4aHv2iYf5', 
+            'scary': '1Bc19lhx4MQ_E9vGB02GRaFX7NpeNYPgd', 
+            'soothing': '1s5vjjo3QbCYphaMOjsMwOLp9bzyO8S2E', 
+            'wood': '1qOm1QehLJAeH2EQAPmufiVnmz7RWK-WN'
+        }
+    },
+    'ffhq': {
+        'name': 'styleganinv_ffhq256',
+        'inverter': '1gij7xy05crnyA-tUTQ2F3yYlAlu6p9bO',
+        'generator': '1SjWD4slw612z2cXa3-n38JwKZXqDUerG',
+        'attributes': {
+            'age': '1ez85GdHz9HZ6DgdQLMmji3ygdMoPipC-', 
+            'expression': '1XJHe2gQKJEczBEhu2MGA94EX28AssnKM', 
+            'eyeglasses': '1fFsNwMUUaPq_Hh6uPgA5K-v9Yjq8unjZ', 
+            'gender': '1iWPlPYHl5h2UsB_ojqB8udJKqvn4y38w', 
+            'pose': '1WSinkKoX9Y8xzfM0Ff2I6Jdum_nFgAy1'
+        }
+    },
+    'tower': {
+        'name': 'styleganinv_tower256',
+        'inverter': '1Pzkgdi3xctdsCZa9lcb7dziA_UMIswyS',
+        'generator': '1lI_OA_aN4-O3mXEPQ1Nv-6tdg_3UWcyN',
+        'attributes': {
+            'clouds': '18awC-Nq2Anx6qR-Kl2hteFxhQoo7vT9c', 
+            'sunny': '1dZIG2UoXEszzySh1PP80Dlfi9XQJVeNJ', 
+            'vegetation': '1LjhoneQ7vTXQ8lJb_CZeTF85ymtfwviB'
+        }
+    }
+}
 
 inverter = None
 generator = None
-boundaries = None
+attributes = None
+current_model_name = None
 
 with submodules.localimport('submodules/idinvert_pytorch') as _importer:
     from models import model_settings
@@ -23,49 +67,57 @@ with submodules.localimport('submodules/idinvert_pytorch') as _importer:
     from utils.editor import manipulate
     from utils.inverter import StyleGANInverter
     from models.helper import build_generator
-
     
-def setup_boundary_vectors():
-    global boundaries
-    root = submodules.get_submodules_root('idinvert_pytorch')
-    boundary_folder = os.path.join(root, 'boundaries')    
-    boundaries = {}
-    for attr in attributes:
-        boundary_path = os.path.join(boundary_folder, 'stylegan_ffhq256', attr + '.npy')
-        boundary_file = np.load(boundary_path, allow_pickle=True)[()]
+        
+def get_available_models():
+    return models.keys()
+
+
+def get_attributes():
+    return attributes.keys()
+    
+
+def setup_model(model_name):
+    global current_model_name
+    if model_name == current_model_name:
+        return
+    
+    assert model_name in get_available_models(), \
+        'Error: {} not recognized. Available models are {}'.format(model_name, ', '.join(get_available_models()))
+    
+    # setup inverter and generator
+    filename = models[model_name]['name'] 
+    downloads.download_from_gdrive(
+        models[model_name]['inverter'], 
+        'idinvert_pytorch/{}_encoder.pth'.format(filename))
+    downloads.download_from_gdrive(
+        models[model_name]['generator'], 
+        'idinvert_pytorch/{}_generator.pth'.format(filename))
+
+    # setup attributes
+    global attributes
+    attributes = {}
+    for attr_name in models[model_name]['attributes']:
+        gdrive_id = models[model_name]['attributes'][attr_name]
+        attr_path = 'idinvert_pytorch/attributes_{}/{}.npy'.format(model_name, attr_name)
+        boundary_filename = downloads.download_from_gdrive(gdrive_id, attr_path)
+        boundary_file = np.load(boundary_filename, allow_pickle=True)[()]
         boundary = boundary_file['boundary']
         manipulate_layers = boundary_file['meta_data']['manipulate_layers']
-        boundaries[attr] = [boundary, manipulate_layers]
-
-
-def download_pretrained_model(model_name):
-    if model_name == 'styleganinv_ffhq256':
-        downloads.download_from_gdrive('1gij7xy05crnyA-tUTQ2F3yYlAlu6p9bO', 
-                                       'idinvert_pytorch/pretrained/styleganinv_ffhq256_encoder.pth')
-        downloads.download_from_gdrive('1SjWD4slw612z2cXa3-n38JwKZXqDUerG', 
-                               'idinvert_pytorch/pretrained/styleganinv_ffhq256_generator.pth')
-
-    elif model_name == 'styleganinv_tower256':
-        downloads.download_from_gdrive('1Pzkgdi3xctdsCZa9lcb7dziA_UMIswyS', 
-                                       'idinvert_pytorch/pretrained/styleganinv_tower256_encoder.pth')
-        downloads.download_from_gdrive('1lI_OA_aN4-O3mXEPQ1Nv-6tdg_3UWcyN', 
-                                       'idinvert_pytorch/pretrained/styleganinv_tower256_generator.pth')
-
-    elif model_name == 'styleganinv_bedroom256':
-        downloads.download_from_gdrive('1ebuiaQ7xI99a6ZrHbxzGApEFCu0h0X2s', 
-                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_encoder.pth')
-        downloads.download_from_gdrive('1ka583QwvMOtcFZJcu29ee8ykZdyOCcMS', 
-                                       'idinvert_pytorch/pretrained/styleganinv_bedroom256_generator.pth')
-
+        attributes[attr_name] = [boundary, manipulate_layers]
+    
+    # setup VGG
     downloads.download_from_gdrive('1qQ-r7MYZ8ZcjQQFe17eQfJbOAuE3eS0y', 
-                                   'idinvert_pytorch/pretrained/vgg16.pth')
+                                   'idinvert_pytorch/vgg16.pth')
+    
+    current_model_name = model_name
 
 
 def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):   
     global inverter
-    download_pretrained_model(model_name)
+    setup_model(model_name)    
     inverter = StyleGANInverter(
-        model_name,
+        models[model_name]['name'],
         learning_rate=0.01,
         iteration=num_iterations,
         reconstruction_loss_weight=1.0,
@@ -75,14 +127,15 @@ def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2)
     
 def setup_generator(model_name):
     global generator
-    download_pretrained_model(model_name)
-    generator = build_generator(model_name)
+    setup_model(model_name)
+    generator = build_generator(models[model_name]['name'])
 
         
 def fuse(model_name, context_images, target_image, crop_size=125, center_x=145, center_y=125):
-    if not inverter or model_name != inverter.model_name:
+    if not inverter or models[model_name]['name'] != inverter.model_name:
         setup_inverter(model_name)
-        
+    
+    target_image = np.array(target_image)
     top = center_y - crop_size // 2
     left = center_x - crop_size // 2
     width, height = crop_size, crop_size
@@ -113,10 +166,13 @@ def fuse(model_name, context_images, target_image, crop_size=125, center_x=145, 
 
 
 def invert(model_name, target_image, redo=False, save=False):
-    if not inverter or model_name != inverter.model_name:
+    if not inverter or models[model_name]['name'] != inverter.model_name:
         setup_inverter(model_name)
-
-    image_hash = hashlib.md5(target_image).hexdigest()
+    
+    target_image = np.array(target_image)
+    
+    image_hash  = hashlib.md5(target_image).hexdigest()
+    image_hash += hashlib.md5(model_name.encode('utf-8')).hexdigest()
     
     latent_code_path = os.path.join(inverted_code_dir, image_hash+'.npy')
     latent_code_found = os.path.exists(latent_code_path)
@@ -137,37 +193,17 @@ def invert(model_name, target_image, redo=False, save=False):
 
 
 def generate(model_name, latent_code):
-    if not generator or model_name != generator.model_name:
+    if not generator or models[model_name]['name'] != generator.model_name:
         setup_generator(model_name)
-
     return generator.easy_synthesize(latent_code, **{'latent_space_type': 'wp'})['image']
 
 
-def modify_latent_code(latent_code, attribute, amount):
-    if attribute not in attributes:
-        print('attribute %s not found. available: {}'.format(', '.join(attributes)))
-    
-    if not boundaries:
-        setup_boundary_vectors()
-
+def modulate(latent_code, attribute, amount):
+    assert attributes, "Error: no model loaded!"    
+    assert attribute in attributes.keys(), \
+        'attribute {} not found. available: {}'.format(attribute, ', '.join(attributes))
     new_code = latent_code.copy()
-    manipulate_layers = boundaries[attribute][1]
-    new_code[:, manipulate_layers, :] += boundaries[attribute][0][:, manipulate_layers, :] * amount
+    manipulate_layers = attributes[attribute][1]
+    new_code[:, manipulate_layers, :] += attributes[attribute][0][:, manipulate_layers, :] * amount
     return new_code
-
-
-def age(latent_code, amount):
-    return modify_latent_code(latent_code, 'age', amount)
-
-def eyeglasses(latent_code, amount):
-    return modify_latent_code(latent_code, 'eyeglasses', amount)
-
-def gender(latent_code, amount):
-    return modify_latent_code(latent_code, 'gender', amount)
-
-def pose(latent_code, amount):
-    return modify_latent_code(latent_code, 'pose', amount)
-
-def expression(latent_code, amount):
-    return modify_latent_code(latent_code, 'expression', amount)
 

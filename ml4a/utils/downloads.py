@@ -13,20 +13,24 @@ import gdown
 ML4A_DATA_ROOT = os.path.join(os.path.expanduser('~'), '.ml4a')
 
 
-def get_ml4a_folder(subfolder=''):
+def get_ml4a_folder(subfolder=None):
     ml4a_folder = ML4A_DATA_ROOT
-    if subfolder is not None and subfolder != '':
+    if subfolder is not None and subfolder:
         ml4a_folder = os.path.join(ml4a_folder, subfolder)    
     Path(ml4a_folder).mkdir(parents=True, exist_ok=True)
     return ml4a_folder
 
 
 def get_ml4a_downloads_folder():
-    return get_ml4a_folder('models')
+    return get_ml4a_folder(None)
 
 
 def get_ml4a_scratch_folder():
-    return get_ml4a_folder('scratch')
+    return get_ml4a_folder('_scratch')
+
+
+def get_ml4a_data_folder():
+    return get_ml4a_folder('_data')
 
 
 def unzip(zip_file, output_folder, erase_zipfile=True):

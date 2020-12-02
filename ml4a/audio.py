@@ -16,7 +16,7 @@ def sample_audio():
     filename = 'migi.mp4'
     audio_path = downloads.download_from_gdrive(
         gdrive_fileid=sample_audio_files[filename],
-        output_path='sample_images/%s'%filename)
+        output_path='_data/sample_audio/%s'%filename)
     return __preprocess_wav__(audio_path)
 
 
