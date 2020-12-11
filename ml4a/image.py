@@ -1,4 +1,5 @@
 import os
+import time
 import math
 from PIL import Image
 import numpy as np
@@ -29,6 +30,9 @@ def load_image(img, image_size=None, to_numpy=False, normalize=False, autocrop=F
     if isinstance(img, str):
         if is_url(img):
             img = url_to_image(img)
+            if img is None:
+                print("Error: no image returned")
+                return None
         elif os.path.exists(img):
             img = Image.open(img).convert('RGB')
         else:
@@ -58,8 +62,18 @@ def random_image(image_size, margin=1.0, bias=128.0):
 
 
 def url_to_image(url):
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
+    finishedd = False
+    max_tries, n_tries = 5, 0
+    img = None
+    while not finished:
+        try:
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            finished = True
+        except:
+            time.sleep(5)
+            n_tries += 1
+            finished = n_tries >= 10
     return img
 
 
