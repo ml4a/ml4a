@@ -31,3 +31,6 @@
 [submodule "tools/neural-enhance"]
 	path = tools/neural-enhance
 	url = https://github.com/alexjc/neural-enhance.git
+[submodule "tools/torch-dreams"]
+	path = tools/torch-dreams
+	url = https://github.com/Mayukhdeb/torch-dreams.git
