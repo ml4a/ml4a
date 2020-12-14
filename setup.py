@@ -5,6 +5,8 @@ submodules_root = 'ml4a.models.submodules'
 submodules = {
     'BASNet': ['model', 'pytorch_iou', 'pytorch_ssim'],
     'deepdream': [],
+    'ESRGAN': ['datasets', 'models'],
+    'FlowNetPytorch': ['models'],    
     'glow': ['demo'],
     'idinvert_pytorch': ['boundaries', 'boundaries.stylegan_bedroom256', 'boundaries.stylegan_ffhq256', 'boundaries.stylegan_tower256', 'models', 'utils'],
     'neural_style': [],
