@@ -62,7 +62,7 @@ def random_image(image_size, margin=1.0, bias=128.0):
 
 
 def url_to_image(url):
-    finishedd = False
+    finished = False
     max_tries, n_tries = 5, 0
     img = None
     while not finished:
