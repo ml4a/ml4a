@@ -40,3 +40,6 @@
 [submodule "ml4a/models/submodules/ESRGAN"]
 	path = ml4a/models/submodules/ESRGAN
 	url = https://github.com/xinntao/ESRGAN
+[submodule "ml4a/models/submodules/torch-dreams"]
+	path = ml4a/models/submodules/torch-dreams
+	url = https://github.com/Mayukhdeb/torch-dreams.git
