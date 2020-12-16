@@ -7,8 +7,10 @@ import numpy as np
 import sklearn.cluster
 import cv2
 
+from ..models import basnet
 from ..utils.downloads import *
 from ..utils.console import *
+from ..utils import EasyDict
 from ..image import *
 from .canvas import *
 
@@ -33,7 +35,7 @@ def image_to_mask(img):
     return mask
 
 
-def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
+def generate_mask_frames(masks, flatten_blend=False, merge=True):
     masks = masks if isinstance(masks, list) else [masks]
     color_labels = default_color_labels
     frames = []
@@ -44,7 +46,7 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
             mask_arr[:, c * w:(c+1)*w] = mask[:, :, c]
         if flatten_blend:
             mask_arr = 0.5*(mask_arr>0.0)+0.5*(mask_arr==1.0)
-        if draw_rgb:    
+        if merge:    
             mask_sum = np.sum(mask, axis=2)
             mask_norm = mask / mask_sum[:, :, np.newaxis] 
             mask_frame = np.sum(
@@ -53,15 +55,16 @@ def generate_mask_frames(masks, flatten_blend=False, draw_rgb=True):
                  for c in range(nc)], 
                 axis=0).transpose((1,2,0))
         else:
-            mask_frame = 255 * mask if draw_rgb else 255 * mask_arr
+            mask_frame = 255 * mask if merge else 255 * mask_arr
         frames.append(mask_frame)
     return frames
 
 
-def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
+def view_mask(masks, flatten_blend=False, merge=True, animate=True, fps=30):
     masks = masks if isinstance(masks, list) else [masks]
+    masks = [get_mask(m, 0) if isinstance(m, dict) else m for m in masks]
     animate = animate if len(masks)>1 else False
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
+    frames = generate_mask_frames(masks, flatten_blend, merge)
     if animate:
         return frames_to_movie(frames, fps=fps)
     else:
@@ -69,8 +72,8 @@ def view_mask(masks, flatten_blend=False, draw_rgb=True, animate=True, fps=30):
             display(frame)
     
     
-def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30):
-    frames = generate_mask_frames(masks, flatten_blend, draw_rgb)
+def save_mask_video(filename, masks, flatten_blend=False, merge=True, fps=30):
+    frames = generate_mask_frames(masks, flatten_blend, merge)
     clip = ImageSequenceClip(frames, fps=fps)
     folder = os.path.dirname(filename)
     if folder and not os.path.isdir(folder):
@@ -80,6 +83,7 @@ def save_mask_video(filename, masks, flatten_blend=False, draw_rgb=True, fps=30)
     
 
 def mask_arcs(size, num_channels, center, radius, period, t, blend=0.0, inwards=False, reverse=False):
+    blend += 1e-8  # hack to fix bugs
     (w, h), (ctr_x, ctr_y), n = size, center, num_channels    
     rad = radius * n
     mask = np.zeros((h, w, n))
@@ -99,6 +103,9 @@ def mask_arcs(size, num_channels, center, radius, period, t, blend=0.0, inwards=
 
 
 def mask_rects(size, num_channels, p1, p2, width, period, t, blend=0.0, reverse=False):
+    p2 = (p2[0] + 1e-8 if p2[0]==p1[0] else p2[0],
+          p2[1] + 1e-8 if p2[1]==p1[1] else p2[1])  # hack to fix bugs
+    blend += 1e-8  # hack to fix bugs
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
     length = ((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)**0.5
@@ -179,7 +186,7 @@ def mask_image_manual(size, num_channels, image, thresholds, blur_k, n_dilations
     return mask
 
 
-def mask_image_auto(size, num_channels, image, blur_k, n_dilations):
+def mask_image_auto(size, num_channels, image, blur_k):
     (w, h), n = size, num_channels
     mask = np.zeros((h, w, n))
     img = load_image(image) if isinstance(image, str) else image
@@ -247,17 +254,31 @@ def mask_image_kmeans(size, num_channels, image, blur_k, n_dilations, prev_mask=
     return mask
 
 
-def get_mask(mask, t=0):
-    m = EasyDict(mask)
+def mask_image_basnet(size, image):
+    (w, h), n = size, 2
+    mask = np.zeros((h, w, n))
+    img = load_image(image) if isinstance(image, str) else image
+    img = resize(img, size)
+    img = np.array(img)[:, :, ::-1]
+    img = crop_to_aspect_ratio(img, float(w)/h)
+    mask[:,:,0] = basnet.get_foreground(img)[:,:,0]/255.0
+    mask[:,:,1] = 1.0-mask[:,:,0]
+    return mask
 
-    m.size = m.size if 'size' in m else (512, 512)
+
+def get_mask(mask, size=None, t=0):
+    m = EasyDict(mask)
+    
+    if size is None and m.type != 'image':
+        size = m.size if 'size' in m else (512, 512)
+
     m.num_channels = m.num_channels if 'num_channels' in m else 1
     m.period = m.period if 'period' in m else 1e8
     m.normalize = m.normalize if 'normalize' in m else False
     
     if m.type == 'solid': 
         masks = mask_identity(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels
         )
    
@@ -267,7 +288,7 @@ def get_mask(mask, t=0):
         m.cross_fade = m.cross_fade if 'cross_fade' in m else False
         
         masks = mask_interpolation(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             period=m.period, t=t, 
             blend=m.blend, 
@@ -283,7 +304,7 @@ def get_mask(mask, t=0):
         m.reverse = m.reverse if 'reverse' in m else False
 
         masks = mask_arcs(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             center=m.center, 
             radius=m.radius, 
@@ -301,7 +322,7 @@ def get_mask(mask, t=0):
         m.reverse = m.reverse if 'reverse' in m else False
 
         masks = mask_rects(
-            size=m.size, 
+            size=size, 
             num_channels=m.num_channels, 
             p1=m.p1, p2=m.p2, 
             width=m.width, 
@@ -316,23 +337,27 @@ def get_mask(mask, t=0):
         m.prev_mask = m.prev_mask if 'prev_mask' in m else None
         m.method = m.method if 'method' in m else 'kmeans'
         m.image = m.image if 'image' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
-        m.image = m.image.get_frame(t) if isinstance(m.image, MoviePlayer) else m.image
-        assert m.method in ['kmeans', 'threshold', 'auto'], \
+        is_movie = isinstance(m.image, MoviePlayer) or type(m.image).__name__ == 'MoviePlayer'
+        m.image = m.image.get_frame(t) if is_movie else m.image
+        assert m.method in ['kmeans', 'threshold', 'auto', 'basnet'], \
             'Invalid method %s. Options are (kmeans, threshold, auto)'%m.method
 
+        if size is None:
+            size = get_size(m.image)
+        
         if m.method == 'kmeans':        
             masks = mask_image_kmeans(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
-                blur_k=m.blur_k, 
-                n_dilations=m.n_dilations, 
+                blur_k=m.blur_k,
+                n_dilations=m.n_dilations,
                 prev_mask=m.prev_mask
             )
 
         elif m.method == 'threshold':
             masks = mask_image_manual(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
                 thresholds=m.thresholds, 
@@ -342,13 +367,18 @@ def get_mask(mask, t=0):
             
         elif m.method == 'auto':
             masks = mask_image_auto(
-                size=m.size, 
+                size=size, 
                 num_channels=m.num_channels, 
                 image=m.image, 
-                blur_k=m.blur_k, 
-                n_dilations=m.n_dilations
+                blur_k=m.blur_k
             )
-        
+
+        elif m.method == 'basnet':
+            masks = mask_image_basnet(
+                size=size, 
+                image=m.image
+            )
+
     if m.normalize:
         mask_sum = np.maximum(
             np.ones(masks.shape[0:2]), 

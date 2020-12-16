@@ -8,10 +8,9 @@ from ..utils import downloads
 from .. import image
 from . import submodules
 
-with submodules.import_from('BASNet'):
+with submodules.localimport('submodules/BASNet') as _importer:
     from data_loader import RescaleT, ToTensorLab
     from model import BASNet
-
 
 net = None
 model_loaded = False

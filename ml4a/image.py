@@ -1,4 +1,5 @@
 import os
+import time
 import math
 from PIL import Image
 import numpy as np
@@ -8,14 +9,30 @@ from io import BytesIO
 import IPython
 import moviepy.editor as mpe
 
+from .utils import downloads
+
 Image.MAX_IMAGE_PIXELS = 1e9
-    
+
+sample_images = {
+    'escher_sphere.jpg': '1pXYUSTfVDhJSOES0L0LEhf8A1lB28S4t',
+    'frida_kahlo.jpg': '1JbTCTqApHJW6m4Fw6cH_dtgcIp0oKXcB',
+    'hokusai.jpg': '1j7UzCT7q3EKCkyKh5QgIApdMi3j_iAdT',
+    'monalisa.jpg': '1WZgqATI5dKDwOpkLfOhuBOvn4zt4UcTa',
+    'starry_night.jpg': '1LLV7lyuCPOCDa5c7CkWjSfeckXBou1W7',
+    'teddybear_frame1.png': '1e9cPyDMdsVIF26RI6htlALExiHbCPiXW',
+    'teddybear_frame2.png': '1iL8r4LxRKNZH9xf0qa1bLW-hDXU2-gT8',
+    'the_scream.jpg': '1jrhDwRidBbgv7Ki2yBfyMhubbnD2LHAY',
+    'tubingen.jpg': '19lf288HWdzgSP4B8OQfHPv1un9ljZVJR'
+}
 
 
-def load_image(img, image_size=None, to_numpy=False, normalize=False):
+def load_image(img, image_size=None, to_numpy=False, normalize=False, autocrop=False):
     if isinstance(img, str):
         if is_url(img):
             img = url_to_image(img)
+            if img is None:
+                print("Error: no image returned")
+                return None
         elif os.path.exists(img):
             img = Image.open(img).convert('RGB')
         else:
@@ -23,6 +40,9 @@ def load_image(img, image_size=None, to_numpy=False, normalize=False):
     elif isinstance(img, np.ndarray):
         img = Image.fromarray(img.astype(np.uint8)).convert('RGB')
     if image_size is not None and isinstance(image_size, tuple):
+        if autocrop:
+            aspect = float(image_size[0])/image_size[1]
+            img = crop_to_aspect_ratio(img, aspect)
         img = resize(img, image_size)
     elif image_size is not None and not isinstance(image_size, tuple):
         aspect = get_aspect_ratio(img)
@@ -42,8 +62,18 @@ def random_image(image_size, margin=1.0, bias=128.0):
 
 
 def url_to_image(url):
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
+    finished = False
+    max_tries, n_tries = 5, 0
+    img = None
+    while not finished:
+        try:
+            response = requests.get(url)
+            img = Image.open(BytesIO(response.content))
+            finished = True
+        except:
+            time.sleep(5)
+            n_tries += 1
+            finished = n_tries >= 10
     return img
 
 
@@ -106,7 +136,15 @@ def crop_to_aspect_ratio(img, aspect_ratio):
 
 
 def display(images, animate=False, title=None, num_cols=4):
-    images = np.array(images)
+    if isinstance(images, list):
+        num_image_sizes = len(set([np.array(img).shape for img in images]))
+        if num_image_sizes > 1:
+            images = concatenate_images(images)        
+        else:
+            images = [np.array(img) for img in images]
+        images = np.array(images)
+    else:
+        images = np.array(images)
     ndim = np.array(images).ndim
     multiple_images = False
     if ndim == 2:
@@ -121,20 +159,23 @@ def display(images, animate=False, title=None, num_cols=4):
     elif ndim == 4:
         multiple_images = True
         num_channels = images.shape[-1]
-    if not multiple_images:
+    if multiple_images:
+        images = [np.array(img) for img in images]
+    else:
         images = np.expand_dims(images, axis=0)
     if animate:
         return frames_to_movie(images, fps=30)
     n = len(images)
     num_cols = min(n, num_cols)
-    h, w = images[0].shape[:2]
+    h, w = np.array(images[0]).shape[:2]
     nr, nc = math.ceil(n / num_cols), num_cols
     for r in range(nr):
         idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
         img_row = np.concatenate([img for img in images[idx1:idx2]], axis=1)
         if num_channels == 1:
             img_row = np.repeat(img_row, 3, axis=-1)
-        whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, 3))
+            num_channels = 3
+        whitespace = np.zeros((h, (num_cols-(idx2-idx1))*w, num_channels))
         img_row = np.concatenate([img_row, whitespace], axis=1)
         img_row = Image.fromarray(img_row.astype(np.uint8)).convert('RGB')
         if title is not None:
@@ -194,7 +235,28 @@ def frames_to_movie(frames, fps=30):
     IPython.display.clear_output()
     return disp_clip
 
-    
+
+def load_sample_image(filename, size=None):
+    assert filename in get_sample_images(), \
+        '%s not found in sample images. Available images are %s' % (filename, ', '.join(get_sample_images()))
+    sample_image_path = downloads.download_from_gdrive(
+        gdrive_fileid=sample_images[filename],
+        output_path='_data/sample_images/%s'%filename)
+    return load_image(sample_image_path, size)
+
+
+def get_sample_images():
+    return sample_images.keys()
+
+
+def escher(size=None): return load_sample_image('escher_sphere.jpg', size)
+def fridakahlo(size=None): return load_sample_image('frida_kahlo.jpg', size)
+def hokusai(size=None): return load_sample_image('hokusai.jpg', size)
+def monalisa(size=None): return load_sample_image('monalisa.jpg', size)
+def starrynight(size=None): return load_sample_image('starry_night.jpg', size)
+def scream(size=None): return load_sample_image('the_scream.jpg', size)
+def tubingen(size=None): return load_sample_image('tubingen.jpg', size)
+        
 
 class MoviePlayer:
     

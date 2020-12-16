@@ -4,9 +4,39 @@
 [submodule "ml4a/models/submodules/stylegan2"]
 	path = ml4a/models/submodules/stylegan2
 	url = https://github.com/NVlabs/stylegan2
-[submodule "ml4a/models/submodules/neural-style-pt"]
-	path = ml4a/models/submodules/neural-style-pt
-	url = https://github.com/genekogan/neural-style-pt
+[submodule "ml4a/models/submodules/neural_style"]
+	path = ml4a/models/submodules/neural_style
+	url = https://github.com/genekogan/neural_style
+[submodule "ml4a/models/submodules/deepdream"]
+	path = ml4a/models/submodules/deepdream
+	url = https://github.com/genekogan/deepdream
+[submodule "ml4a/models/submodules/PhotoSketch"]
+	path = ml4a/models/submodules/PhotoSketch
+	url = https://github.com/mtli/PhotoSketch
+[submodule "ml4a/models/submodules/semantic-segmentation-pytorch"]
+	path = ml4a/models/submodules/semantic-segmentation-pytorch
+	url = https://github.com/CSAILVision/semantic-segmentation-pytorch
+[submodule "ml4a/models/submodules/idinvert_pytorch"]
+	path = ml4a/models/submodules/idinvert_pytorch
+	url = https://github.com/genforce/idinvert_pytorch
+[submodule "ml4a/models/submodules/White-box-Cartoonization"]
+	path = ml4a/models/submodules/White-box-Cartoonization
+	url = https://github.com/SystemErrorWang/White-box-Cartoonization
+[submodule "ml4a/models/submodules/Wav2Lip"]
+	path = ml4a/models/submodules/Wav2Lip
+	url = https://github.com/Rudrabha/Wav2Lip
+[submodule "ml4a/models/submodules/SPADE"]
+	path = ml4a/models/submodules/SPADE
+	url = https://github.com/genekogan/SPADE
 [submodule "ml4a/models/submodules/BASNet"]
 	path = ml4a/models/submodules/BASNet
-	url = https://github.com/genekogan/BASNet
+	url = https://www.github.com/NathanUA/BASNet
+[submodule "ml4a/models/submodules/tacotron2"]
+	path = ml4a/models/submodules/tacotron2
+	url = https://github.com/NVIDIA/tacotron2
+[submodule "ml4a/models/submodules/FlowNetPytorch"]
+	path = ml4a/models/submodules/FlowNetPytorch
+	url = https://github.com/ClementPinard/FlowNetPytorch
+[submodule "ml4a/models/submodules/ESRGAN"]
+	path = ml4a/models/submodules/ESRGAN
+	url = https://github.com/xinntao/ESRGAN

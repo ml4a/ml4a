@@ -12,7 +12,10 @@ from ..utils import downloads
 from .. import image
 from . import submodules
 
-with submodules.import_from('stylegan2'):
+# todo: absorb latent code to ml4a.utils.latents
+
+#with submodules.localimport('submodules/stylegan2') as _importer:
+with submodules.import_from('stylegan2'):  # localimport fails here
     import pretrained_networks
     import dnnlib
     import dnnlib.tflib as tflib
@@ -20,6 +23,10 @@ with submodules.import_from('stylegan2'):
 _G, _D, Gs, Gs_syn_kwargs = None, None, None, None
 
 pretrained_models = {
+    'ffhq': {
+        'gdrive_fileid': '1qSJvpFOUf6vSjAzmjjRya21Hlc9dCC9S', 
+        'output_path': 'stylegan2/pretrained/ffhq/network-final-ffhq.pth'
+    },
     'landscapes': {
         'gdrive_fileid': '1UV6dUphjG8kUyYS4FWpzwTHpuGcdQ62Y', 
         'output_path': 'stylegan2/pretrained/landscapes/network-final-landscapes.pth'
@@ -58,19 +65,19 @@ def get_pretrained_model(model_name):
 #         pyplot.figure(figsize=(int(4 * float(w)/h * num_cols), 4))
 #         pyplot.imshow(img1)
 
-        
+       
+def run(latents, labels, truncation=1.0):
+    print("minibatch 8")
+    images = Gs.run(latents, labels, truncation_psi=truncation, minibatch_size=8, **Gs_syn_kwargs) # [minibatch, height, width, channel]
+    return images, latents
+
+
 def random_sample(num_images, label, truncation=1.0, seed=None):
-    global Gs, Gs_syn_kwargs
     seed = seed if seed else np.random.randint(100)
     rnd = np.random.RandomState(int(seed))
     latents = rnd.randn(num_images, *Gs.input_shape[1:]) # [minibatch, component]
     labels = np.zeros((num_images, 7))
-    if type(label) == list:
-        labels[:, :] = label
-    else:    
-        labels[:, label] = 1
-    images = Gs.run(latents, labels, truncation_psi=truncation, **Gs_syn_kwargs) # [minibatch, height, width, channel]
-    return images, latents
+    return run(latents, labels, truncation)
 
 
 def interpolated_matrix_between(start, end, num_frames):
@@ -157,6 +164,7 @@ def generate_interpolation_video(output_path, labels, truncation=1, duration_sec
         
     clip = moviepy.editor.VideoClip(make_frame, duration=duration_sec)
     clip.write_videofile(output_path, fps=mp4_fps, codec='libx264', bitrate=mp4_bitrate)
+    return output_path
 
 #    cmd = 'ffmpeg -y -i "%s" -c:v libx264 -pix_fmt yuv420p "%s";ls "%s"' % (os.path.join(result_subdir, mp4_name_temp), os.path.join(result_subdir, mp4_name), os.path.join(result_subdir, mp4_name_temp))
 #    os.system(cmd)
@@ -164,8 +172,10 @@ def generate_interpolation_video(output_path, labels, truncation=1, duration_sec
 
 
 def load_model(network_pkl, randomize_noise=False):
-    global Gs, Gs_syn_kwargs
+    global _G, _D, Gs, Gs_syn_kwargs
     _G, _D, Gs = pretrained_networks.load_networks(network_pkl)
     Gs_syn_kwargs = dnnlib.EasyDict()
     Gs_syn_kwargs.output_transform = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
     Gs_syn_kwargs.randomize_noise = randomize_noise
+
+    
