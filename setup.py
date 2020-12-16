@@ -15,9 +15,9 @@ submodules = {
     'SPADE': ['data', 'datasets', 'models', 'models.networks', 'models.networks.sync_batchnorm', 'options', 'trainers', 'util'],
     'stylegan2': ['dnnlib', 'dnnlib.tflib', 'dnnlib.tflib.ops', 'dnnlib.submission', 'dnnlib.submission.internal', 'metrics', 'training'],
     'tacotron2': ['text', 'waveglow'],
+    'torch-dreams': ['torch_dreams'],
     'Wav2Lip': ['evaluation', 'evaluation.scores_LSE', 'face_detection', 'face_detection.detection', 'face_detection.detection.sfd', 'models'],
-    'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search'],
-    'torch-dreams': ['torch_dreams']
+    'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search']
 } 
 install_requires = [
     'bs4', 
