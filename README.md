@@ -48,4 +48,4 @@ Contribute to the code.
 
 ## License
 
-ml4a itself is [licensed MIT](https://github.com/ml4a/ml4a/blob/master/LICENSE.txt), but you are also bound to the licenses of any [models]https://github.com/ml4a/ml4a/tree/master/ml4a/models/submodules) you use.
+ml4a itself is [licensed MIT](https://github.com/ml4a/ml4a/blob/master/LICENSE), but you are also bound to the licenses of any [models](https://github.com/ml4a/ml4a/tree/master/ml4a/models/submodules) you use.
