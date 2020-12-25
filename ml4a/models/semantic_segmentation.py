@@ -80,6 +80,11 @@ def get_class_index(class_name):
     return list(classes.keys())[list(classes.values()).index(class_name)]
 
 
+def get_color_labels(pred):
+    im_vis = colorEncode(pred, colors).astype(np.uint8)
+    return im_vis
+    
+    
 def visualize(img, pred, index=None, concat_original=True):
     if index is not None:
         pred = pred.copy()
