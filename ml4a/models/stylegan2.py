@@ -23,10 +23,26 @@ with submodules.import_from('stylegan2'):  # localimport fails here
 _G, _D, Gs, Gs_syn_kwargs = None, None, None, None
 
 pretrained_models = {
+    'cars': {
+        'gdrive_fileid': '1jmEmT_LFbVnxk-jBU52KRNq8n2jBRbUk', 
+        'output_path': 'stylegan2/pretrained/cars/stylegan2-car-config-f.pkl'
+    },
+    'cats': {
+        'gdrive_fileid': '1Di_Kgs09KMtFWrjiUmcCx9kNbDNxgRUj', 
+        'output_path': 'stylegan2/pretrained/cats/stylegan2-cat-config-f.pkl'
+    },
+    'churches': {
+        'gdrive_fileid': '1Rm0tYPxfRvGA4ZPe5QbDu_iCJv9PVm5h', 
+        'output_path': 'stylegan2/pretrained/churches/stylegan2-church-config-f.pkl'
+    },
+    'horses': {
+        'gdrive_fileid': '1DQfp4YjeMvbSSBwc9qKO9D8FLRBsKBZD', 
+        'output_path': 'stylegan2/pretrained/horses/stylegan2-horse-config-f.pkl'
+    },
     'ffhq': {
         'gdrive_fileid': '1qSJvpFOUf6vSjAzmjjRya21Hlc9dCC9S', 
         'output_path': 'stylegan2/pretrained/ffhq/network-final-ffhq.pth'
-    },
+    },    
     'landscapes': {
         'gdrive_fileid': '1UV6dUphjG8kUyYS4FWpzwTHpuGcdQ62Y', 
         'output_path': 'stylegan2/pretrained/landscapes/network-final-landscapes.pth'
@@ -67,7 +83,6 @@ def get_pretrained_model(model_name):
 
        
 def run(latents, labels, truncation=1.0):
-    print("minibatch 8")
     images = Gs.run(latents, labels, truncation_psi=truncation, minibatch_size=8, **Gs_syn_kwargs) # [minibatch, height, width, channel]
     return images, latents
 
