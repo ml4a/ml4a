@@ -33,6 +33,7 @@ install_requires = [
     'matplotlib',
     'moviepy',
     'noise', 
+    'numba',
     'numpy',
     'opencv-python',
     'Pillow',
