@@ -38,12 +38,11 @@ Every model in `ml4a.models`, including the `stylegan2` module above, imports al
 
 ### Become a sponsor
 
-You can support ml4a by donating through GitHub sponsors. 
+You can support ml4a by [donating through GitHub sponsors](https://github.com/sponsors/ml4a/). 
 
 ### How to contribute
 
-Join the Slack.
-Contribute to the code.
+Start by joining the [Slack](https://join.slack.com/t/ml-4a/shared_invite/enQtNjA4MjgzODk1MjA3LTlhYjQ5NWQ2OTNlODZiMDRjZTFmNDZiYjlmZWYwNGM0YjIxNjE3Yjc0NWVjMmVlZjNmZDhmYTkzZjk0ZTg1ZGM%3E) or following us on [Twitter](https://www.twitter.com/ml4a_). Contribute to the codebase, or help write tutorials.
 
 
 ## License
