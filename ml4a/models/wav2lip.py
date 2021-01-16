@@ -11,6 +11,8 @@ from .. import audio as ml4a_audio
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.localimport('submodules/Wav2Lip') as _importer:
 with submodules.import_from('Wav2Lip'):  # localimport fails here   
     import audio

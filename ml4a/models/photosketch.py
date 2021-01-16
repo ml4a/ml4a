@@ -6,6 +6,8 @@ from types import SimpleNamespace
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.localimport('submodules/PhotoSketch') as _importer:
 with submodules.import_from('PhotoSketch'):  # localimport fails here   
     from models.models import create_model

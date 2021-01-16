@@ -61,6 +61,8 @@ generator = None
 attributes = None
 current_model_name = None
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/idinvert_pytorch') as _importer:
     from models import model_settings
     model_settings.MODEL_DIR = model_dir

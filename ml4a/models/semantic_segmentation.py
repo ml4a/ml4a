@@ -13,6 +13,8 @@ from .. import image
 from . import submodules
 from ..utils import downloads
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.import_from('semantic-segmentation-pytorch'):
 with submodules.localimport('submodules/semantic-segmentation-pytorch') as _importer:
     from mit_semseg.dataset import TestDataset

@@ -6,6 +6,8 @@ from ..utils import downloads
 from .. import image
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/glow') as _importer:
     pass
 

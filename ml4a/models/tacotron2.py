@@ -9,6 +9,8 @@ from ..utils import downloads
 from ..utils import EasyDict
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/tacotron2') as _importer:
     from hparams import create_hparams
     from model import Tacotron2

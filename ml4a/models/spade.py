@@ -7,6 +7,8 @@ from ..utils import EasyDict
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.localimport('submodules/SPADE') as _importer:
 with submodules.import_from('SPADE'):  # localimport fails here    
     from options.test_options import TestOptions

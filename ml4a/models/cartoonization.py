@@ -6,6 +6,8 @@ from tqdm import tqdm
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/White-box-Cartoonization') as _importer:
     from test_code import network
     from test_code import guided_filter

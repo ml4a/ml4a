@@ -1,6 +1,8 @@
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/deepdream') as _importer:
     from utils import *
     from model import *

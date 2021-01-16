@@ -9,6 +9,8 @@ import torchvision.transforms as transforms
 from ..utils import downloads
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.import_from('PhotoSketch'):  # localimport fails here   
 with submodules.localimport('submodules/FlowNetPytorch') as _importer:
     import models

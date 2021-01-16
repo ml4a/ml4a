@@ -6,6 +6,8 @@ from ..utils import downloads
 from . import submodules
 from .. import image
 
+cuda_available = submodules.cuda_available()
+
 #with submodules.import_from('ESRGAN'):  # localimport fails here   
 with submodules.localimport('submodules/ESRGAN') as _importer:
     import RRDBNet_arch as arch

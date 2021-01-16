@@ -8,6 +8,8 @@ from ..utils import downloads
 from .. import image
 from . import submodules
 
+cuda_available = submodules.cuda_available()
+
 with submodules.localimport('submodules/BASNet') as _importer:
     from data_loader import RescaleT, ToTensorLab
     from model import BASNet
