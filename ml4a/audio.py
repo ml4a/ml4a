@@ -42,6 +42,10 @@ def save(filename, wav, sampling_rate=None):
         sampling_rate, 
         wav)
 
+    
+def load(filename):
+    return __preprocess_wav__(filename)
+
 
 def get_duration(wav, sampling_rate=None):
     wav, sampling_rate = __preprocess_wav__(wav, sampling_rate)
