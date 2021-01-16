@@ -5,5 +5,7 @@
 .vscode/
 __pycache__/
 ml4a.egg*
+build
+dist
 *.ipynb_checkpoints*
 Pipfile*

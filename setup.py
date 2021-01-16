@@ -1,3 +1,4 @@
+import pathlib
 from setuptools import setup, find_packages
 
 packages = ['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules']
@@ -48,6 +49,10 @@ install_requires = [
     "tqdm"
 ]
 
+readme_file = pathlib.Path(__file__).parent / "README.md"
+
+short_description = 'A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples'
+
 for submodule, subfolders in submodules.items():
     submodule_packages = ['{}.{}'.format(submodules_root, submodule)]
     submodule_packages.extend(['{}.{}.{}'.format(submodules_root, submodule, f) for f in subfolders])
@@ -55,14 +60,15 @@ for submodule, subfolders in submodules.items():
 
 setup(
     name='ml4a',
-    version='0.1',
-    description='A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples',
+    version='0.1.0',
+    description=short_description,
+    long_description=readme_file.read_text(),
+    long_description_content_type="text/markdown",
     url='http://github.com/ml4a/ml4a',
     author='Gene Kogan',
     author_email='gene@genekogan.com',
-    license='LGPL 2.0',
+    license='MIT',
     packages=packages, 
     install_requires=install_requires,
     zip_safe=False
 )
-
