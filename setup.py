@@ -3,6 +3,7 @@ from setuptools import setup, find_packages
 
 packages = ['ml4a', 'ml4a.dataset', 'ml4a.utils', 'ml4a.models', 'ml4a.canvas', 'ml4a.models.submodules']
 submodules_root = 'ml4a.models.submodules'
+
 submodules = {
     'BASNet': ['model', 'pytorch_iou', 'pytorch_ssim'],
     'deepdream': [],
@@ -20,6 +21,7 @@ submodules = {
     'Wav2Lip': ['evaluation', 'evaluation.scores_LSE', 'face_detection', 'face_detection.detection', 'face_detection.detection.sfd', 'models'],
     'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search']
 } 
+
 install_requires = [
     'bs4', 
     'dill', 
@@ -49,6 +51,12 @@ install_requires = [
     "tqdm"
 ]
 
+package_data = {
+    'ml4a': ['models/submodules/stylegan2/dnnlib/tflib/ops/*.cu']
+}
+
+
+
 readme_file = pathlib.Path(__file__).parent / "README.md"
 
 short_description = 'A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples'
@@ -69,6 +77,7 @@ setup(
     author_email='gene@genekogan.com',
     license='MIT',
     packages=packages, 
+    package_data=package_data,
     install_requires=install_requires,
     zip_safe=False
 )
