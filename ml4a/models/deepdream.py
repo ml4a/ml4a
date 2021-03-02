@@ -27,3 +27,9 @@ def run(config, img, title=None):
     if not model:
         setup_deepdream()
     return run_deepdream(model, config, img, title)
+
+
+def get_layers():
+    if not model:
+        setup_deepdream()
+    return model.get_layers()
