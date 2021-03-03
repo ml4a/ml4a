@@ -42,7 +42,8 @@ def generate_video2(frames_path, output_path):
 def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
     numframes = len([f for f in listdir(frames_path) if isfile(join(frames_path, f)) and f[-4:]=='.png'])
     if numframes == 0:
-        warn("No frames found in %s"%frames_path)
+        #warn("No frames found in %s"%frames_path)
+        print("No frames found in %s"%frames_path)
         return
     log('creating %d-frame movie: %s -> %s'%(numframes, frames_path, output_path))
     if match_hist:
@@ -58,19 +59,18 @@ def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, match_
             img = ImageEnhance.Contrast(img).enhance(con)
             img = ImageEnhance.Sharpness(img).enhance(sharp)
             img.save(edited_filepath)
-    w, h  = img.size
+    w, h = img.size
     wx, wy = w-(w%2), h-(h%2)
     ffmpeg_str = 'ffmpeg -i %s/temp/f%%05d.png -c:v libx264 -pix_fmt yuv420p -vf scale=%d:%d ' % (frames_path, wx, wy)
     if bitrate is None:
         cmd = '%s %s'%(ffmpeg_str, output_path)
     else:
         cmd = '%s -b %d %s'%(ffmpeg_str, bitrate, output_path)
-    os.system('rm %s' % output_path)
     os.system(cmd)
+    #if erase_frames:
+    #    os.system('rm %s' % output_path)
     if not cumulative:
         os.system('rm -rf %s/temp' % frames_path)
-    if erase_frames:
-        os.system('rm -rf %s/f*.png' % frames_path)
     log('Done making %s' % output_path)
 
 
