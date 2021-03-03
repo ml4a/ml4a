@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import re
 import os
 import sys
 import json
@@ -372,8 +373,8 @@ def dataset_tool(config):
         
     popen_args = [
         'python', dataset_tool,
-        '--source', images_folder, 
-        '--dest', dataset_output,
+        '--source', '"{}"'.format(images_folder), 
+        '--dest', '"{}"'.format(dataset_output),
         '--transform', transform,
         '--width', str(size), 
         '--height', str(size)
@@ -391,9 +392,8 @@ def dataset_tool(config):
 
     print('completed dataset pre-processing in {}'.format(dataset_output))
 
-    
+
 def train(config):
-    
     assert 'results_dir' in config
     assert 'dataset_root' in config
 
@@ -411,7 +411,7 @@ def train(config):
 
     assert cfg.base_config in preset_base_configs, \
         'Base config {} not found, available are: '.format(cfg.base_config, ', '.join(preset_base_configs))
-    
+
     # determine which GPUs to use
     if gpu is None:
         num_gpus = len(numba.cuda.gpus)
@@ -430,18 +430,38 @@ def train(config):
         'stylegan2-ada-pytorch/train.py'
     )
     
+    # if resume set to auto, find last saved checkpoint automagically
+    if resume == 'auto':
+        dataset_name = os.path.split(checkpoint_path)[-1]
+        checkpoints = [x[0] for x in os.walk(results_dir)][1:]
+        regex = r'[0-9]+-{}-{}-.+'.format(dataset_name, dataset_root)
+        matches = [re.findall(regex, c) for c in checkpoints]
+        matches = sorted([m[0] for m in matches if len(m)])
+        match = matches[-1] if len(matches) else None
+        if match:
+            checkpoint_dir = os.path.join(results_dir, match)
+            files = [f for f in os.listdir(checkpoint_dir) 
+                     if os.path.isfile(os.path.join(checkpoint_dir, f))]
+            checkpoints = [f for f in files if 'network-snapshot' in f]
+            checkpoints = sorted(checkpoints)
+            checkpoint_path = os.path.join(checkpoint_dir, checkpoints[-1])
+            resume = checkpoint_path
+    
     # setup command
     popen_args = [
-        '--outdir', results_dir,
-        '--data', dataset_root,
+        'python', training_script,
+        '--outdir', '"{}"'.format(results_dir),
+        '--data', '"{}"'.format(dataset_root),
         '--cond', '1' if labels else '0',
         '--snap', str(save_every),
         '--mirror', '1' if mirror else '0',
-        '--config', base_config,
+        '--cfg', base_config,
         '--kimg', str(kimg),
         '--resume', resume,
         '--gpus', str(num_gpus)
     ]
+    
+    print(' '.join(popen_args))
      
     # run command
     if gpu is not None:
