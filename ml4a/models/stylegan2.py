@@ -195,4 +195,3 @@ def load_model(network_pkl, randomize_noise=False):
     Gs_syn_kwargs.output_transform = dict(func=tflib.convert_images_to_uint8, nchw_to_nhwc=True)
     Gs_syn_kwargs.randomize_noise = randomize_noise
 
-    
