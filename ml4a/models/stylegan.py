@@ -373,14 +373,15 @@ def dataset_tool(config):
         
     popen_args = [
         'python', dataset_tool,
-        '--source', '"{}"'.format(images_folder), 
-        '--dest', '"{}"'.format(dataset_output),
+        '--source', '{}'.format(images_folder.replace(" ", "\ ")), 
+        '--dest', '{}'.format(dataset_output.replace(" ", "\ ")),
         '--transform', transform,
         '--width', str(size), 
         '--height', str(size)
     ]
     print(' '.join(popen_args))
 
+    return
     if labels:
         make_dataset_label_lookup(images_folder)
     
@@ -432,11 +433,22 @@ def train(config):
     
     # if resume set to auto, find last saved checkpoint automagically
     if resume == 'auto':
-        dataset_name = os.path.split(checkpoint_path)[-1]
+        dataset_name = os.path.split(dataset_root)[-1]
+        print("dataset name", dataset_name)
         checkpoints = [x[0] for x in os.walk(results_dir)][1:]
-        regex = r'[0-9]+-{}-{}-.+'.format(dataset_name, dataset_root)
+        print('checkpoints')
+        print(checkpoints)
+        print(dataset_name, dataset_root)
+        regex = r'[0-9]+-{}-{}-.+'.format(dataset_name, base_config)
         matches = [re.findall(regex, c) for c in checkpoints]
         matches = sorted([m[0] for m in matches if len(m)])
+        print("found matches", matches)
+        
+        
+        # what if most recent folder has no checkpoint?
+        
+        
+        
         match = matches[-1] if len(matches) else None
         if match:
             checkpoint_dir = os.path.join(results_dir, match)
@@ -445,13 +457,14 @@ def train(config):
             checkpoints = [f for f in files if 'network-snapshot' in f]
             checkpoints = sorted(checkpoints)
             checkpoint_path = os.path.join(checkpoint_dir, checkpoints[-1])
+            print("check path", resume)
             resume = checkpoint_path
     
     # setup command
     popen_args = [
         'python', training_script,
-        '--outdir', '"{}"'.format(results_dir),
-        '--data', '"{}"'.format(dataset_root),
+        '--outdir', results_dir.replace(" ", "\ "),
+        '--data', dataset_root.replace(" ", "\ "),
         '--cond', '1' if labels else '0',
         '--snap', str(save_every),
         '--mirror', '1' if mirror else '0',
@@ -463,6 +476,8 @@ def train(config):
     
     print(' '.join(popen_args))
      
+    return
+
     # run command
     if gpu is not None:
         my_env = os.environ.copy()
