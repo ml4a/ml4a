@@ -19,7 +19,7 @@ with submodules.localimport('submodules/tacotron2') as _importer:
     from train import load_model
     from text import text_to_sequence
     from waveglow.denoiser import Denoiser
-    
+
 
 model = None
 
@@ -54,16 +54,32 @@ def run(text, denoise=True):
     if model is None:
         setup()
     
-    sequence = np.array(text_to_sequence(text, ['english_cleaners']))[None, :]
-    sequence = torch.autograd.Variable(torch.from_numpy(sequence)).cuda().long()
-    mel_outputs, mel_outputs_postnet, _, alignments = model.inference(sequence)
+    words = text.split(' ')
+    speech_all = np.array([])
+    
+    excerpt_length = 20
+    for w in range(0, len(words), excerpt_length):
+        w1, w2 = w, min(w+excerpt_length, len(words))
+        excerpt = ' '.join(words[w1:w2])
 
-    with torch.no_grad():
-        audio = waveglow.infer(mel_outputs_postnet, sigma=0.666)
+        sequence = np.array(text_to_sequence(excerpt, ['english_cleaners']))[None, :]
+        sequence = torch.autograd.Variable(torch.from_numpy(sequence)).cuda().long()
+        mel_outputs, mel_outputs_postnet, _, alignments = model.inference(sequence)
 
-    if denoise:
-        audio = denoiser(audio, strength=0.01)[:, 0]
+        with torch.no_grad():
+            audio = waveglow.infer(mel_outputs_postnet, sigma=0.666)
+
+        if denoise:
+            audio = denoiser(audio, strength=0.01)[:, 0]
         
-    output = EasyDict({'wav': audio, 'sampling_rate': hparams.sampling_rate})
+        speech_all = np.concatenate([speech_all, audio.cpu().numpy()[0]], axis=-1)
+    
+    output = EasyDict({
+        'wav': speech_all, 
+        'sampling_rate': hparams.sampling_rate}
+    )
+    
     return output
+
+
 
