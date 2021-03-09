@@ -1,11 +1,12 @@
 from imutils.face_utils import FaceAligner
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import imutils
 import dlib
 import cv2
 import torch
 import torchvision.transforms as transforms
+import face_recognition
 
 from ..utils import downloads
 from ..models import submodules
@@ -139,6 +140,52 @@ def visualize_parse(parsing, overlay=None):
     vis_im = cv2.addWeighted(cv2.cvtColor(vis_im, cv2.COLOR_RGB2BGR), w1, vis_parsing_anno_color, w2, 0)
     return vis_im
     
+    
+def get_encodings(target_face_img):
+    if not predictor:
+        setup_face_detection()
+    #target_face_img = face_recognition.load_image_file(filename)
+    target_face_img = np.array(target_face_img)
+    target_encodings = face_recognition.face_encodings(target_face_img)
+    return target_encodings
+
+    
+def get_face(img, target_encodings=None):
+    if not predictor:
+        setup_face_detection()
+    img = np.array(img)
+    locations = face_recognition.face_locations(img, model="cnn")
+    if len(locations) == 0:
+        return None, None, None, None, None
+    encodings = face_recognition.face_encodings(img, locations)
+    landmarks = face_recognition.face_landmarks(img, locations)
+    if target_encodings is not None:
+        distances = [face_recognition.face_distance([target_encodings], encoding) for encoding in encodings]
+        idx_closest = distances.index(min(distances))
+        target_face, target_landmarks = locations[idx_closest], landmarks[idx_closest]
+    else:
+        target_face, target_landmarks = locations[0], landmarks[0]
+    top, right, bottom, left = target_face
+    x, y, w, h = left, top, right-left, bottom-top
+    return x, y, w, h, target_landmarks
+
+
+def draw_landmarks(img, landmarks, color=(255,255,255,255), width=1):
+    img = Image.fromarray(np.copy(img))
+    d = ImageDraw.Draw(img, 'RGBA')
+    whole_face = landmarks['chin'] + list(reversed(landmarks['right_eyebrow'])) + list(reversed(landmarks['left_eyebrow'])) + [landmarks['chin'][0]]
+    #d.line(landmarks['left_eyebrow'], fill=color, width=width)
+    #d.line(landmarks['right_eyebrow'], fill=color, width=width)
+    d.line(landmarks['left_eye'], fill=color, width=width)
+    d.line(landmarks['right_eye'], fill=color, width=width)
+    d.line(landmarks['top_lip'], fill=color, width=width)
+    d.line(landmarks['bottom_lip'], fill=color, width=width)
+    d.line(landmarks['nose_bridge'], fill=color, width=width)
+    d.line(landmarks['nose_tip'], fill=color, width=width)
+    #d.line(landmarks['chin'], fill=color, width=width)
+    d.line(whole_face, fill=color, width=width)
+    return img
+
     
 def align_face_from_path(img_path, face_width=256, resize_width=800):
     img = Image.open(img_path).convert('RGB') 
