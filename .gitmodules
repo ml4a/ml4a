@@ -46,3 +46,6 @@
 [submodule "ml4a/models/submodules/stylegan2-ada-pytorch"]
 	path = ml4a/models/submodules/stylegan2-ada-pytorch
 	url = https://github.com/NVlabs/stylegan2-ada-pytorch/
+[submodule "ml4a/models/submodules/face-parsing.PyTorch"]
+	path = ml4a/models/submodules/face-parsing.PyTorch
+	url = https://github.com/zllrunning/face-parsing.PyTorch
