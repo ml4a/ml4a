@@ -381,7 +381,6 @@ def dataset_tool(config):
     ]
     print(' '.join(popen_args))
 
-    return
     if labels:
         make_dataset_label_lookup(images_folder)
     
@@ -475,8 +474,6 @@ def train(config):
     ]
     
     print(' '.join(popen_args))
-     
-    return
 
     # run command
     if gpu is not None:
