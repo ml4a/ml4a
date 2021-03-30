@@ -8,6 +8,7 @@ submodules = {
     'BASNet': ['model', 'pytorch_iou', 'pytorch_ssim'],
     'deepdream': [],
     'ESRGAN': ['models'],
+    'face-parsing.PyTorch': ['modules', 'modules.src', 'modules.src.utils'],     
     'FlowNetPytorch': ['datasets', 'models'],
     'glow': ['demo'],
     'idinvert_pytorch': ['boundaries', 'boundaries.stylegan_bedroom256', 'boundaries.stylegan_ffhq256', 'boundaries.stylegan_tower256', 'models', 'utils'],
@@ -61,7 +62,12 @@ package_data = {
         'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cu',
         'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cpp',
         'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.h'
-    ],
+        'models/submodules/face-parsing.PyTorch/modules/src/*.cu',
+        'models/submodules/face-parsing.PyTorch/modules/src/*.cpp',
+        'models/submodules/face-parsing.PyTorch/modules/src/*.h',
+        'models/submodules/face-parsing.PyTorch/modules/src/utils/*.h',
+        'models/submodules/face-parsing.PyTorch/modules/src/utils/*.cuh'
+    ]
 }
 
 
