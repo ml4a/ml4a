@@ -12,7 +12,7 @@ from ..utils import downloads
 from ..models import submodules
 
 #with submodules.localimport('submodules/face-parsing.PyTorch') as _importer:
-with submodules.import_from('face-parsing.PyTorch'):  # localimport fails here    
+with submodules.import_from('face-parsing-PyTorch'):  # localimport fails here    
     from model import BiSeNet
 
 detector = None
