@@ -122,7 +122,7 @@ def extend_path(pth, name):
   function inside the #localimport context.
   '''
 
-  if pth is None:
+  if pth is None or isinstance(pth, int):
     return None
 
   def zip_isfile(z, name):
