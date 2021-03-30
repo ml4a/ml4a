@@ -39,7 +39,7 @@ parsing_colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0],
 def setup_face_detection():
     global detector, predictor
     predictor_file = downloads.download_data_file(
-        url='https://storage.googleapis.com/glow-demo/shape_predictor_68_face_landmarks.dat', 
+        url='https://github.com/ageitgey/face_recognition_models/raw/master/face_recognition_models/models/shape_predictor_68_face_landmarks.dat', 
         output_path='face_recognition/shape_predictor_68_face_landmarks.dat')
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(predictor_file)
