@@ -71,7 +71,6 @@ package_data = {
 }
 
 
-
 readme_file = pathlib.Path(__file__).parent / "README.md"
 
 short_description = 'A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples'
@@ -83,7 +82,7 @@ for submodule, subfolders in submodules.items():
 
 setup(
     name='ml4a',
-    version='0.1.0',
+    version='0.1.1',
     description=short_description,
     long_description=readme_file.read_text(),
     long_description_content_type="text/markdown",
