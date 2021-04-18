@@ -23,16 +23,16 @@ ml4a bundles the source code of various open source repositories as [git submodu
 
 ```
 from ml4a import image
-from ml4a.models import stylegan2
+from ml4a.models import stylegan
 
-network_pkl = stylegan2.get_pretrained_model('ffhq')
-stylegan2.load_model(network_pkl)
+network_pkl = stylegan.get_pretrained_model('ffhq')
+stylegan.load_model(network_pkl)
 
-samples, _ = stylegan2.random_sample(3, labels=None, truncation=1.0)
+samples, _ = stylegan.random_sample(3, labels=None, truncation=1.0)
 image.display(samples)
 ```
 
-Every model in `ml4a.models`, including the `stylegan2` module above, imports all of the original repository's code into its namespace, allowing low-level access.
+Every model in `ml4a.models`, including the `stylegan` module above, imports all of the original repository's code into its namespace, allowing low-level access.
 
 ## Support ml4a
 
