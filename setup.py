@@ -82,7 +82,7 @@ for submodule, subfolders in submodules.items():
 
 setup(
     name='ml4a',
-    version='0.1.1',
+    version='0.1.2',
     description=short_description,
     long_description=readme_file.read_text(),
     long_description_content_type="text/markdown",
