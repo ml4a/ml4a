@@ -91,8 +91,10 @@ def generate(latents,
              noise_mode='const',
              minibatch_size=16):
     
-    assert G is not None, 'Error: no model loaded'
-    assert noise_mode in noise_modes, 'Error: noise mode %s not found. Available are %s' % (noise_mode, ', '.join(noise_modes))
+    assert G is not None, \
+        'Error: no model loaded'
+    assert noise_mode in noise_modes, \
+        'Error: noise mode %s not found. Available are %s' % (noise_mode, ', '.join(noise_modes))
 
     if isinstance(latents, np.ndarray):
         latents = torch.from_numpy(latents).cuda()
@@ -168,7 +170,10 @@ def get_latent_interpolation(endpoints,
         e1, e2 = e, (e+1) % num_endpoints
         for t in range(num_frames_per):
             frame = e * num_frames_per + t
-            r = 0.5 - 0.5 * np.cos(np.pi*t/(num_frames_per-1)) if mode == 'ease' else float(t) / num_frames_per
+            if mode == 'ease':
+                r = 0.5 - 0.5 * np.cos(np.pi*t/(num_frames_per-1))
+            else:
+                r = float(t) / num_frames_per
             latents[frame, :] = (1.0-r) * endpoints[e1,:] + r * endpoints[e2,:]
     return latents
 
@@ -370,7 +375,6 @@ def dataset_tool(config):
         os.path.dirname(os.path.abspath(submodules.__file__)), 
         'stylegan2-ada-pytorch/dataset_tool.py')
         
-        
     popen_args = [
         'python', dataset_tool,
         '--source', '{}'.format(images_folder.replace(" ", "\ ")), 
@@ -386,9 +390,9 @@ def dataset_tool(config):
     
     process = subprocess.Popen(popen_args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     for c in iter(lambda: process.stdout.read(1), b''): 
-        print(c.decode("utf-8") , end='')
+        print(c.decode("utf-8", "ignore") , end='')
     for c in iter(lambda: process.stderr.read(1), b''): 
-        print(c.decode("utf-8") , end='')
+        print(c.decode("utf-8", "ignore") , end='')
 
     print('completed dataset pre-processing in {}'.format(dataset_output))
 
@@ -433,21 +437,15 @@ def train(config):
     # if resume set to auto, find last saved checkpoint automagically
     if resume == 'auto':
         dataset_name = os.path.split(dataset_root)[-1]
-        print("dataset name", dataset_name)
         checkpoints = [x[0] for x in os.walk(results_dir)][1:]
-        print('checkpoints')
-        print(checkpoints)
-        print(dataset_name, dataset_root)
         regex = r'[0-9]+-{}-{}-.+'.format(dataset_name, base_config)
         matches = [re.findall(regex, c) for c in checkpoints]
+        pkls = [glob.glob('{}/{}/network-snapshot-*.pkl'.format(results_dir, m[0])) for m in matches]
+        pkls = sorted([item for sublist in pkls for item in sublist])  # flatten
+        last_pkl = pkls[-1]
         matches = sorted([m[0] for m in matches if len(m)])
         print("found matches", matches)
-        
-        
         # what if most recent folder has no checkpoint?
-        
-        
-        
         match = matches[-1] if len(matches) else None
         if match:
             checkpoint_dir = os.path.join(results_dir, match)

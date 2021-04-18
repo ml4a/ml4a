@@ -115,7 +115,7 @@ def setup_model(model_name):
     current_model_name = model_name
 
 
-def setup_inverter(model_name, num_iterations=100, regularization_loss_weight=2):   
+def setup_inverter(model_name, num_iterations=1000, regularization_loss_weight=2):   
     global inverter
     setup_model(model_name)    
     inverter = StyleGANInverter(

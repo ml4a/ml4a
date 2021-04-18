@@ -165,7 +165,26 @@ def get_latent_interpolation_bspline(endpoints, nf, k, s, shuffle):
 
 
 
-def generate_interpolation_video(output_path, labels, truncation=1, duration_sec=60.0, smoothing_sec=1.0, image_shrink=1, image_zoom=1, mp4_fps=30, mp4_codec='libx264', mp4_bitrate='16M', seed=None, minibatch_size=16):    
+
+def generate_interpolation_video(output_path, all_latents, labels, truncation=1, duration_sec=60.0, smoothing_sec=1.0, image_shrink=1, image_zoom=1, mp4_fps=30, mp4_codec='libx264', mp4_bitrate='16M', seed=None, minibatch_size=16):    
+    global Gs, Gs_syn_kwargs
+
+    num_frames = int(np.rint(duration_sec * mp4_fps))    
+    all_latents = get_gaussian_latents(duration_sec, smoothing_sec, mp4_fps, seed)
+    all_labels = get_interpolated_labels(labels, num_frames)
+
+    def make_frame(t):
+        frame_idx = int(np.clip(np.round(t * mp4_fps), 0, num_frames - 1))
+        the_latents = all_latents[frame_idx]
+        labels = all_labels[frame_idx].reshape((1, 7))
+        images = Gs.run(the_latents, labels, truncation_psi=truncation, minibatch_size=minibatch_size, **Gs_syn_kwargs)
+        return images[0]
+        
+    clip = moviepy.editor.VideoClip(make_frame, duration=duration_sec)
+    clip.write_videofile(output_path, fps=mp4_fps, codec='libx264', bitrate=mp4_bitrate)
+    return output_path
+
+def generate_interpolation_video2(output_path, labels, truncation=1, duration_sec=60.0, smoothing_sec=1.0, image_shrink=1, image_zoom=1, mp4_fps=30, mp4_codec='libx264', mp4_bitrate='16M', seed=None, minibatch_size=16):    
     global Gs, Gs_syn_kwargs
 
     num_frames = int(np.rint(duration_sec * mp4_fps))    
