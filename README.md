@@ -28,7 +28,7 @@ from ml4a.models import stylegan
 network_pkl = stylegan.get_pretrained_model('ffhq')
 stylegan.load_model(network_pkl)
 
-samples, _ = stylegan.random_sample(3, labels=None, truncation=1.0)
+samples = stylegan.random_sample(3, labels=None, truncation=1.0)
 image.display(samples)
 ```
 
