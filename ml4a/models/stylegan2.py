@@ -69,21 +69,8 @@ def get_pretrained_model(model_name):
         return model_file
     else:
         raise Exception("No pretrained model named %s. Run stylegan2.get_pretrained_models() to get a list." % model_name) 
-    
 
-# def display(images, num_cols=4,title=None):
-#     n = len(images)
-#     h, w, _ = images[0].shape
-#     nr, nc = math.ceil(n / num_cols), num_cols
-#     for r in range(nr):
-#         idx1, idx2 = num_cols * r, min(n, num_cols * (r + 1))
-#         img1 = np.concatenate([img for img in images[idx1:idx2]], axis=1)
-#         if title is not None:
-#             pyplot.title(title)        
-#         pyplot.figure(figsize=(int(4 * float(w)/h * num_cols), 4))
-#         pyplot.imshow(img1)
 
-       
 def run(latents, labels, truncation=1.0):
     images = Gs.run(latents, labels, truncation_psi=truncation, minibatch_size=8, **Gs_syn_kwargs) # [minibatch, height, width, channel]
     return images, latents

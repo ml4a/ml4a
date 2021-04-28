@@ -122,7 +122,7 @@ def random_sample(num_images,
     rnd = np.random.RandomState(int(seed))
     latents = rnd.randn(num_images, G.z_dim)
     
-    ### fix labels
+    ### fix labels / generalize
     labels = None #np.zeros((num_images, 7))
     return generate(latents, labels, truncation)
 
@@ -255,14 +255,10 @@ def generate_interpolation_video(output_path,
                                  seed=None, 
                                  minibatch_size=16):
     
-    assert G is not None, 'Error: no model loaded'
     num_frames = int(np.rint(duration_sec * mp4_fps))    
     all_latents = get_gaussian_latents(duration_sec, smoothing_sec, mp4_fps, seed)
-
-    # fix this...
     all_labels = get_interpolated_labels(labels, num_frames) 
-    
-    
+
     generate_video(output_path,
                    all_latents, 
                    all_labels, 
@@ -272,19 +268,7 @@ def generate_interpolation_video(output_path,
                    mp4_codec='libx264', 
                    mp4_bitrate='16M', 
                    minibatch_size=16)
-    
-    video = imageio.get_writer(output_path, mode='I', fps=mp4_fps, 
-                               codec=mp4_codec, bitrate=mp4_bitrate)    
 
-    for f in tqdm(range(0, num_frames, minibatch_size)):
-        f1, f2 = f, min(num_frames, f + minibatch_size - 1)
-        latents = all_latents.squeeze()[f1:f2]
-        labels = all_labels.squeeze()[f1:f2]
-        images = generate(latents, labels, truncation=truncation, noise_mode=noise_mode)
-        for image in images:
-            video.append_data(np.array(image))
-    
-    video.close()
     return output_path
 
 
@@ -383,7 +367,6 @@ def dataset_tool(config):
         '--width', str(size), 
         '--height', str(size)
     ]
-    print(' '.join(popen_args))
 
     if labels:
         make_dataset_label_lookup(images_folder)
