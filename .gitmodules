@@ -49,3 +49,6 @@
 [submodule "ml4a/models/submodules/Wav2Lip"]
 	path = ml4a/models/submodules/Wav2Lip
 	url = https://github.com/genekogan/Wav2Lip
+[submodule "ml4a/models/submodules/taming-transformers"]
+	path = ml4a/models/submodules/taming-transformers
+	url = https://github.com/CompVis/taming-transformers

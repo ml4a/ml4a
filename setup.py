@@ -19,6 +19,7 @@ submodules = {
     'stylegan2': ['dnnlib', 'dnnlib.tflib', 'dnnlib.tflib.ops', 'dnnlib.submission', 'dnnlib.submission.internal', 'metrics', 'training'],
     'stylegan2-ada-pytorch': ['dnnlib', 'metrics', 'torch_utils', 'torch_utils.ops', 'training'],
     'tacotron2': ['text', 'waveglow'],
+    'taming-transformers': ['configs', 'data', 'scripts', 'taming', 'taming.data', 'taming.models', 'taming.modules', 'taming.modules.diffusionmodules', 'taming.modules.discriminator', 'taming.modules.losses', 'taming.modules.misc', 'taming.modules.transformer', 'taming.modules.vqvae'],
     'torch-dreams': ['torch_dreams'],
     'Wav2Lip': ['evaluation', 'evaluation.scores_LSE', 'face_detection', 'face_detection.detection', 'face_detection.detection.sfd', 'models'],
     'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search']
@@ -42,8 +43,10 @@ install_requires = [
     'noise', 
     'numba',
     'numpy',
+    'omegaconf==2.0.0',
     'opencv-python',
     'Pillow',
+    'pytorch-lightning==1.0.8',
     'psutil',
     'scikit-image', 
     'scikit-learn', 
@@ -58,15 +61,17 @@ install_requires = [
 
 package_data = {
     'ml4a': [
-        'models/submodules/stylegan2/dnnlib/tflib/ops/*.cu',
-        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cu',
-        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cpp',
-        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.h'
         'models/submodules/face-parsing-PyTorch/modules/src/*.cu',
         'models/submodules/face-parsing-PyTorch/modules/src/*.cpp',
         'models/submodules/face-parsing-PyTorch/modules/src/*.h',
         'models/submodules/face-parsing-PyTorch/modules/src/utils/*.h',
-        'models/submodules/face-parsing-PyTorch/modules/src/utils/*.cuh'
+        'models/submodules/face-parsing-PyTorch/modules/src/utils/*.cuh',        
+        'models/submodules/stylegan2/dnnlib/tflib/ops/*.cu',
+        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cu',
+        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.cpp',
+        'models/submodules/stylegan2-ada-pytorch/torch_utils/ops/*.h',
+        'models/submodules/taming-transformers/data/*.txt',
+        'models/submodules/taming-transformers/configs/*.yaml'
     ]
 }
 
