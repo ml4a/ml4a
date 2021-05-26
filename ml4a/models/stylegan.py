@@ -363,10 +363,11 @@ def dataset_tool(config):
         'python', dataset_tool,
         '--source', '{}'.format(images_folder.replace(" ", "\ ")), 
         '--dest', '{}'.format(dataset_output.replace(" ", "\ ")),
-        '--transform', transform,
         '--width', str(size), 
         '--height', str(size)
     ]
+    if transform is not None:
+        popen_args += ['--transform', transform]
 
     if labels:
         make_dataset_label_lookup(images_folder)
