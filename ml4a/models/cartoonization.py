@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from ..utils import downloads
 from . import submodules
+from .. import image
 
 cuda_available = submodules.cuda_available()
 
@@ -68,13 +69,22 @@ def run(img):
         setup()
 
     img = np.array(img)
-    #img = resize_crop(img)    
+    
+    # resize so resolution %4==0
+    w1, h1 = image.get_size(img)
+    w2 = w1 + (4 - w1 % 4)
+    h2 = h1 + (4 - h1 % 4)
+    img = image.resize(img, (w2, h2))
+    img = np.array(img)
+    
+    #img = resize_crop(img)
     img = img.astype(np.float32)/127.5 - 1
     if img.ndim < 4:
         img = np.expand_dims(img, axis=0)
     output = sess.run(final_out, feed_dict={input_photo: img})
     output = (np.squeeze(output)+1)*127.5
     output = np.clip(output, 0, 255).astype(np.uint8)
+    output = image.resize(output, (w1, h1))
     return output
 
     
