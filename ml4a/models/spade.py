@@ -35,13 +35,12 @@ pretrained_models = {
         ['1XukXJvb2tYbEcvSCenRDFHkypdUJUj1Q', 'classes_list.txt']
     ],
     'landscapes': [
-        ['1T9FGxZQL9riB-a-cBOkFDdjBC2rf1Buh', 'latest_net_G.pth'],
-        ['1kgqOc4mlvOt1gjxrCchnSyzp_6NgJ6wX', 'opt.txt'],
+        ['15VSa2m2F6Ch0NpewDR7mkKAcXlMgDi5F', 'latest_net_G.pth'],
+        ['1zm26Oct3KaqO0dTW2dC_lNg8awsyo9sP', 'opt.txt'],
         ['1jsgr-6TZHDFll9ZdszpY8JNyY6B_5MzI', 'classes_list.txt']
     ]
 }
 
-    
 classes = None
 model = None
 opt = None
