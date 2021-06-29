@@ -15,8 +15,8 @@ with submodules.import_from('taming-transformers'):  # localimport fails here
     from taming.models.cond_transformer import Net2NetTransformer
 
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+gpu = 0
 model = None
 config = None
 
@@ -25,11 +25,32 @@ pretrained_models = {
         'checkpoint': 'https://heibox.uni-heidelberg.de/d/73487ab6e5314cb5adba/files/?p=%2Fcheckpoints%2Flast.ckpt&dl=1',
         'config': 'https://heibox.uni-heidelberg.de/d/73487ab6e5314cb5adba/files/?p=%2Fconfigs%2F2020-11-09T13-31-51-project.yaml&dl=1'
     },
-    'vqgan': {
+    'imagenet': {
         'checkpoint': 'https://heibox.uni-heidelberg.de/f/867b05fc8c4841768640/?dl=1',
         'config': 'https://heibox.uni-heidelberg.de/f/274fb24ed38341bfa753/?dl=1'
+    },
+    'wikiart': {
+        'checkpoint': 'http://mirror.io.community/blob/vqgan/wikiart_16384.ckpt',
+        'config': 'http://mirror.io.community/blob/vqgan/wikiart_16384.yaml'
+    },
+    'coco': {
+        'checkpoint': 'http://mirror.io.community/blob/vqgan/coco.ckpt',
+        'config': 'http://mirror.io.community/blob/vqgan/coco.yaml'
+    },
+    'sflckr': {
+        'checkpoint': 'http://mirror.io.community/blob/vqgan/sflckr.ckpt',
+        'config': 'http://mirror.io.community/blob/vqgan/sflckr.yaml'
+    },
+    'faceshq': {
+        'checkpoint': 'http://mirror.io.community/blob/vqgan/faceshq.ckpt',
+        'config': 'http://mirror.io.community/blob/vqgan/faceshq.yaml'
+    },
+    'openimages': {
+        'checkpoint': 'https://heibox.uni-heidelberg.de/d/2e5662443a6b4307b470/files/?p=%2Fckpts%2Flast.ckpt&dl=1',
+        'config': 'https://heibox.uni-heidelberg.de/d/2e5662443a6b4307b470/files/?p=%2Fconfigs%2Fmodel.yaml&dl=1'
     }
 }
+
 
 
 def get_pretrained_models():
@@ -42,6 +63,8 @@ def setup(model_name):
     assert model_name in get_pretrained_models(), \
         'Error: {} not recognized checkpoint'.format(model_name)
 
+    DEVICE = torch.device("cuda:%d"%gpu if torch.cuda.is_available() else "cpu")
+    
     checkpoint = downloads.download_data_file(
         pretrained_models[model_name]['checkpoint'],
         'taming-transformers/{}/checkpoint.ckpt'.format(model_name))
@@ -54,7 +77,7 @@ def setup(model_name):
     #print(yaml.dump(OmegaConf.to_container(config)))
     if model_name == 'net2net':
         model = Net2NetTransformer(**config.model.params)
-    elif model_name == 'vqgan':
+    elif model_name in ['imagenet', 'wikiart', 'coco', 'sflckr', 'faceshq', 'openimages']:
         model = VQModel(**config.model.params)
     sd = torch.load(checkpoint, map_location="cpu")["state_dict"]
     missing, unexpected = model.load_state_dict(sd, strict=False)
@@ -96,7 +119,6 @@ def run2():
     z_indices = torch.randint(codebook_size, z_indices_shape, device=model.device)
     x_sample = model.decode_to_img(z_indices, z_code_shape)
     show_image(x_sample)
-    
     
     from IPython.display import clear_output
     import time
