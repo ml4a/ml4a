@@ -300,6 +300,9 @@ def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, r
             p = cv2.resize(p.astype(np.uint8), (x2 - x1, y2 - y1))
 
             f[y1:y2, x1:x2] = p
+            
+            f= cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
+            
             out.write(f)
 
     out.release()
