@@ -15,6 +15,9 @@ def interpolation_walk(endpoints, num_frames_per=30, loop=False):
     Z = np.squeeze(Z)
     return Z
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 =======
 >>>>>>> bfb3e0da97ed52833eef635f5ac3de40298591bc
+=======
+>>>>>>> e7929d50b829643a2bbca5d3950110c1d7b61c3c
