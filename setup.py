@@ -49,14 +49,16 @@ install_requires = [
     'pytorch-lightning==1.0.8',
     'psutil',
     'scikit-image', 
-    'scikit-learn', 
-    'tensorflow-gpu==2.x',
+    'scikit-learn',
+    'scipy==1.2.0',
+    'tensorflow==2.6.0',
     'torch', 
     'torchvision', 
     'tqdm',
     'unidecode',
     'yacs',
-    "tqdm"
+    "tqdm",
+    "imageio",
 ]
 
 package_data = {
