@@ -50,7 +50,11 @@ install_requires = [
     'psutil',
     'scikit-image', 
     'scikit-learn', 
+<<<<<<< HEAD
     'tensorflow-gpu==1.15.0',
+=======
+    'tensorflow-gpu==2.x',
+>>>>>>> bfb3e0da97ed52833eef635f5ac3de40298591bc
     'torch', 
     'torchvision', 
     'tqdm',
@@ -87,7 +91,11 @@ for submodule, subfolders in submodules.items():
 
 setup(
     name='ml4a',
+<<<<<<< HEAD
     version='0.1.3',
+=======
+    version='0.1.4',
+>>>>>>> bfb3e0da97ed52833eef635f5ac3de40298591bc
     description=short_description,
     long_description=readme_file.read_text(),
     long_description_content_type="text/markdown",

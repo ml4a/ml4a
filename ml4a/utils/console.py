@@ -29,4 +29,7 @@ def warn(condition, message, verbose=True):
     log('Warning: %s' % message, verbose)
 
 
+<<<<<<< HEAD
     
+=======
+>>>>>>> bfb3e0da97ed52833eef635f5ac3de40298591bc
