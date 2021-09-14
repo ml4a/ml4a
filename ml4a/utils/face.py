@@ -77,7 +77,6 @@ def align_face(img,
     img = img[:, :, ::-1]  # Convert from RGB to BGR format
     img = imutils.resize(img, width=resize_width)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
     rects = detector(gray, 2)
 
     if len(rects) > 0:

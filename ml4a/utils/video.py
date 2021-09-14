@@ -40,7 +40,9 @@ def generate_video2(frames_path, output_path):
     os.system('rm -rf "%s/temp"' % frames_path)
 
     
-def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
+def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, upsample=None, match_hist=False, bitrate=None, cumulative=False, erase_frames=True):
+    if upsample:
+        from ml4a.models import esrgan
     numframes = len(glob.glob('%s/f*.png'%frames_path))
     if numframes == 0:
         #warn("No frames found in %s"%frames_path)
@@ -54,6 +56,10 @@ def generate_video(frames_path, output_path, sat=1.0, con=1.0, sharp=1.0, match_
         edited_filepath = "%s/temp/f%05d.png" % (frames_path, i+1)
         if not os.path.isfile(edited_filepath) or not cumulative:
             img = Image.open('%s/f%05d.png'%(frames_path, i+1))
+            if upsample:
+                img = esrgan.run(img)
+                w, h = image.get_size(img)
+                img = image.resize(img, (int(w/2), int(h/2)))                    
             if match_hist:
                 img = match_histogram(img, avg_hist)
             img = ImageEnhance.Color(img).enhance(sat)
