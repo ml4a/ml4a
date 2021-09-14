@@ -11,9 +11,9 @@ from . import submodules
 
 with submodules.import_from('taming-transformers'):  # localimport fails here
     import taming.modules.losses
-    from taming.models.vqgan import VQModel
+    import taming.lr_scheduler
+    from taming.models.vqgan import VQModel, GumbelVQ
     from taming.models.cond_transformer import Net2NetTransformer
-
 
 
 gpu = 0
@@ -65,6 +65,8 @@ def setup(model_name):
 
     DEVICE = torch.device("cuda:%d"%gpu if torch.cuda.is_available() else "cpu")
     
+    print("Setup Taming on device {}".format(DEVICE))
+    
     checkpoint = downloads.download_data_file(
         pretrained_models[model_name]['checkpoint'],
         'taming-transformers/{}/checkpoint.ckpt'.format(model_name))
@@ -77,8 +79,10 @@ def setup(model_name):
     #print(yaml.dump(OmegaConf.to_container(config)))
     if model_name == 'net2net':
         model = Net2NetTransformer(**config.model.params)
-    elif model_name in ['imagenet', 'wikiart', 'coco', 'sflckr', 'faceshq', 'openimages']:
+    elif model_name in ['imagenet', 'wikiart', 'coco', 'sflckr', 'faceshq']:
         model = VQModel(**config.model.params)
+    elif model_name in ['openimages']:
+        model = GumbelVQ(**config.model.params)
     sd = torch.load(checkpoint, map_location="cpu")["state_dict"]
     missing, unexpected = model.load_state_dict(sd, strict=False)
 

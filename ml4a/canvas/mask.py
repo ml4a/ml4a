@@ -269,9 +269,12 @@ def mask_image_basnet(size, image):
 def get_mask(mask, size=None, t=0):
     m = EasyDict(mask)
     
-    if size is None and m.type != 'image':
-        size = m.size if 'size' in m else (512, 512)
-
+    if size is None: #and m.type != 'image':
+        if m.type == 'image':
+            size = m.size if 'size' in m else None
+        else:
+            size = m.size if 'size' in m else (512, 512)
+            
     m.num_channels = m.num_channels if 'num_channels' in m else 1
     m.period = m.period if 'period' in m else 1e8
     m.normalize = m.normalize if 'normalize' in m else False
@@ -336,7 +339,7 @@ def get_mask(mask, size=None, t=0):
         m.n_dilations = m.n_dilations if 'n_dilations' in m else 0
         m.prev_mask = m.prev_mask if 'prev_mask' in m else None
         m.method = m.method if 'method' in m else 'kmeans'
-        m.image = m.image if 'image' in m else '../neural-style-pt/images/inputs/monalisa.jpg'
+        m.image = m.image if 'image' in m else monalisa()
         is_movie = isinstance(m.image, MoviePlayer) or type(m.image).__name__ == 'MoviePlayer'
         m.image = m.image.get_frame(t) if is_movie else m.image
         assert m.method in ['kmeans', 'threshold', 'auto', 'basnet'], \

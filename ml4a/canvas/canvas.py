@@ -70,12 +70,6 @@ def lerp_mod(mod1, mod2, r):
     return mod_avg
 
 
-# def warp_image(mod, img_in, img_blend=None, amt_blend=None):
-#     img_out = modify_canvas(img_in, mod)
-#     if (img_blend is not None and amt_blend is not None and amt_blend > 0):
-#         img_out = (1.0 - amt_blend) * img_out + amt_blend * img_blend
-#     return img_out
-
 def blend_images(img1, img2, blend_amt):
     img_out = (1.0 - blend_amt) * img1 + blend_amt * img2
     return img_out
