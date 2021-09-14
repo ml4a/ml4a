@@ -71,9 +71,9 @@ def url_to_image(url):
             img = Image.open(BytesIO(response.content))
             finished = True
         except:
-            time.sleep(5)
+            time.sleep(3)
             n_tries += 1
-            finished = n_tries >= 10
+            finished = n_tries >= max_tries
     return img
 
 
@@ -104,10 +104,9 @@ def resize(img, new_size, mode=None, align_corners=True):
     resample_mode = sampling_modes[mode]
     return img.resize((w2, h2), resample=resample_mode)
 
-
 def get_size(img):
     if isinstance(img, str):
-        image = load_image(image, 1024)
+        img = load_image(img)
         w, h = img.size
     elif isinstance(img, Image.Image):    
         w, h = img.size
@@ -275,7 +274,7 @@ class MoviePlayer:
         img = self.video.get_frame(time)
         img = Image.fromarray(img)
         if size is not None:
-            img = resize(img)
+            img = resize(img, size)
         return img
     
 
