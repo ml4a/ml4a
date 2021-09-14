@@ -85,18 +85,28 @@ def face_detect(images, pads, nosmooth, batch_size, device):
 
     results = []
     pady1, pady2, padx1, padx2 = pads
+
     for rect, image in zip(predictions, images):
         if rect is None:
             #cv2.imwrite('temp/faulty_frame.jpg', image) # check this frame where the face was not detected.
-            raise ValueError('Face not detected! Ensure the video contains a face in all the frames.')
+            #raise ValueError('Face not detected! Ensure the video contains a face in all the frames.')
+            results.append([None, None, None, None])
+        else:
+            y1 = max(0, rect[1] - pady1)
+            y2 = min(image.shape[0], rect[3] + pady2)
+            x1 = max(0, rect[0] - padx1)
+            x2 = min(image.shape[1], rect[2] + padx2)
+            results.append([x1, y1, x2, y2])
 
-        y1 = max(0, rect[1] - pady1)
-        y2 = min(image.shape[0], rect[3] + pady2)
-        x1 = max(0, rect[0] - padx1)
-        x2 = min(image.shape[1], rect[2] + padx2)
-
-        results.append([x1, y1, x2, y2])
-
+    results_found = [r for r in results if None not in r]
+    if len(results_found) == 0:
+        raise ValueError('Face not detected in any frames! Ensure the video contains a face in at least one frame')
+        
+    if len(results_found) < len(results):
+        x1a, y1a, x2a, y2a = [int(_) for _ in np.mean(results_found, axis=0)]
+        for r in range(len(results)):
+            results[r] = [x1a, y1a, x2a, y2a] if None in results[r] else results[r]
+    
     boxes = np.array(results)
     if not nosmooth: boxes = get_smoothened_boxes(boxes, T=5)
     results = [[image[y1: y2, x1:x2], (y1, y2, x1, x2)] for image, (x1, y1, x2, y2) in zip(images, boxes)]
