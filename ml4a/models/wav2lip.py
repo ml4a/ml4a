@@ -1,4 +1,6 @@
 import os
+import logging
+import random
 import subprocess
 import numpy as np
 import PIL
@@ -240,9 +242,10 @@ def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, r
 
     #print ("Number of frames available for inference: "+str(len(full_frames)))
 
+    random_key = random.randint(1, 1e8)
     scratch_folder = downloads.get_ml4a_folder('scratch/wav2lip')
-    temp_video_file = os.path.join(scratch_folder, 'temp_video.avi')    
-    temp_audio_file = os.path.join(scratch_folder, 'temp_audio.wav')
+    temp_video_file = os.path.join(scratch_folder, 'temp_video_%08d.avi' % random_key)    
+    temp_audio_file = os.path.join(scratch_folder, 'temp_audio_%08d.wav' % random_key)
     
     if sound_is_str:
         if input_audio.endswith('.wav'):
@@ -314,6 +317,14 @@ def run(input_video, input_audio, output_video, sampling_rate=None, pads=None, r
 
     out.release()
         
-    command = 'ffmpeg -y -i {} -i {} -strict -2 -q:v 1 {}'.format(input_audio, temp_video_file, output_video)
+    command = '/usr/bin/ffmpeg -y -i {} -i {} -strict -2 -q:v 1 {}'.format(input_audio, temp_video_file, output_video)
     result = subprocess.call(command, shell=True)
+    if result:
+        logging.info("error on ffmpeg: {}".format(result))
+
+    if os.path.isfile(temp_video_file):
+        os.remove(temp_video_file)
+    if os.path.isfile(temp_audio_file):
+        os.remove(temp_audio_file)
+
     #return result
