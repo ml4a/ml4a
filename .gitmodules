@@ -52,3 +52,9 @@
 [submodule "ml4a/models/submodules/taming-transformers"]
 	path = ml4a/models/submodules/taming-transformers
 	url = https://github.com/CompVis/taming-transformers
+[submodule "stylegan3"]
+	path = stylegan3
+	url = https://www.github.com/NVLabs/stylegan3
+[submodule "ml4a/models/submodules/stylegan3"]
+	path = ml4a/models/submodules/stylegan3
+	url = https://www.github.com/NVLabs/stylegan3
