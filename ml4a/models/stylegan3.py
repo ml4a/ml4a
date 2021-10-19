@@ -23,9 +23,6 @@ with submodules.import_from('stylegan3'):  # localimport fails here
     import dnnlib
     import legacy
     import gen_images
-#    import pretrained_networks
-    #import dnnlib.tflib as tflib
-
 
     
 G = None
