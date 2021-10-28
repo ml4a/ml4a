@@ -138,7 +138,7 @@ def display(images, animate=False, title=None, num_cols=4):
     if isinstance(images, list):
         num_image_sizes = len(set([np.array(img).shape for img in images]))
         if num_image_sizes > 1:
-            images = concatenate_images(images)        
+            images = concatenate_images(images)       
         else:
             images = [np.array(img) for img in images]
         images = np.array(images)

@@ -58,3 +58,6 @@
 [submodule "ml4a/models/submodules/stylegan3"]
 	path = ml4a/models/submodules/stylegan3
 	url = https://www.github.com/NVLabs/stylegan3
+[submodule "ml4a/models/submodules/style-transfer-pytorch"]
+	path = ml4a/models/submodules/style-transfer-pytorch
+	url = https://github.com/genekogan/style-transfer-pytorch

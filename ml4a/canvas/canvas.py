@@ -108,7 +108,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
     h, w = img.shape[0:2]
     mods = mods if isinstance(mods, list) else [mods]
     masks = masks / np.sum(masks, axis=2)[:, :, np.newaxis] if masks is not None else np.ones((h, w, len(mods)))
-
+    
     # make default grid
     grid = np.mgrid[0:w, 0:h].T
     grid = grid.astype(np.float32)    
@@ -138,7 +138,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
         spiral_margin, spiral_periods = mod['spiral_margin'], mod['spiral_periods']
         noise_rate, noise_margin, noise_offset = mod['noise_rate'], mod['noise_margin'], mod['noise_offset']
         cy, cx = h * mod['center'][0], w * mod['center'][1]
-        
+
         # check in advance on what operations so as to save time
         to_shift = (shift[0] != 0.0 or shift[1] != 0.0 or stretch[0] != 1.0 or stretch[1] != 1.0)
         to_zoom = (zoom != 1.0 or expand != 0.0)
@@ -150,7 +150,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
         if to_shift or to_zoom or to_spiral or to_rotate:
             grid = np.mgrid[0:w, 0:h].T
             dfc = grid-[cx, cy]
-
+        
         # zooming, spirals/rotations
         if to_zoom or to_spiral or to_rotate:
             dfc2 = np.power(dfc, 2)
@@ -165,7 +165,7 @@ def modify_canvas(img, mods, masks=None, to_pil=True):
             sx = cx - w * shift[1] + dfc[:,:,0] * stretch_mul[1]
             idx2 = np.dstack([sy, sx])
             mod_idxs[idxm][0] = idx2
-
+        
         # expand/contract, plain zoom + radial
         if to_zoom:
             dst2 = np.add(np.multiply(1.0/zoom, dst), -expand).clip(min=0)
