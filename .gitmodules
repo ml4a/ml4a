@@ -61,3 +61,6 @@
 [submodule "ml4a/models/submodules/style-transfer-pytorch"]
 	path = ml4a/models/submodules/style-transfer-pytorch
 	url = https://github.com/genekogan/style-transfer-pytorch
+[submodule "ml4a/models/submodules/Real-ESRGAN"]
+	path = ml4a/models/submodules/Real-ESRGAN
+	url = https://github.com/genekogan/Real-ESRGAN
