@@ -14,10 +14,12 @@ submodules = {
     'idinvert_pytorch': ['boundaries', 'boundaries.stylegan_bedroom256', 'boundaries.stylegan_ffhq256', 'boundaries.stylegan_tower256', 'models', 'utils'],
     'neural_style': [],
     'PhotoSketch': ['data', 'models', 'options', 'scripts', 'util'],
+    'Real-ESRGAN': ['options', 'realesrgan', 'realesrgan.archs', 'realesrgan.data', 'realesrgan.models', 'realesrgan.weights', 'scripts'],
     'semantic-segmentation-pytorch': ['config', 'data', 'mit_semseg', 'mit_semseg.config', 'mit_semseg.lib', 'mit_semseg.lib.nn', 'mit_semseg.lib.nn.modules', 'mit_semseg.lib.nn.modules.tests', 'mit_semseg.lib.nn.parallel', 'mit_semseg.lib.utils', 'mit_semseg.lib.utils.data', 'mit_semseg.models'],
     'SPADE': ['data', 'datasets', 'models', 'models.networks', 'models.networks.sync_batchnorm', 'options', 'trainers', 'util'],
     'stylegan2': ['dnnlib', 'dnnlib.tflib', 'dnnlib.tflib.ops', 'dnnlib.submission', 'dnnlib.submission.internal', 'metrics', 'training'],
     'stylegan2-ada-pytorch': ['dnnlib', 'metrics', 'torch_utils', 'torch_utils.ops', 'training'],
+    'stylegan3': ['dnnlib', 'gui_utils', 'metrics', 'torch_utils', 'torch_utils.ops', 'training', 'viz'],
     'tacotron2': ['text', 'waveglow'],
     'taming-transformers': ['configs', 'data', 'scripts', 'taming', 'taming.data', 'taming.models', 'taming.modules', 'taming.modules.diffusionmodules', 'taming.modules.discriminator', 'taming.modules.losses', 'taming.modules.misc', 'taming.modules.transformer', 'taming.modules.vqvae'],
     'torch-dreams': ['torch_dreams'],
@@ -25,8 +27,8 @@ submodules = {
     'White-box-Cartoonization': ['index_files', 'test_code', 'test_code.saved_models', 'train_code', 'train_code.selective_search']
 }
 
-
 install_requires = [
+    'basicsr',
     'bs4', 
     'dill', 
     'imutils',
@@ -75,7 +77,6 @@ package_data = {
     ]
 }
 
-
 readme_file = pathlib.Path(__file__).parent / "README.md"
 
 short_description = 'A toolkit for making art with machine learning, including an API for popular deep learning models, recipes for combining them, and a suite of educational examples'
@@ -87,7 +88,7 @@ for submodule, subfolders in submodules.items():
 
 setup(
     name='ml4a',
-    version='0.1.3',
+    version='0.1.4',
     description=short_description,
     long_description=readme_file.read_text(),
     long_description_content_type="text/markdown",
