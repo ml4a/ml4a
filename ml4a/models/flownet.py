@@ -36,7 +36,7 @@ def setup():
     #      '1H_5WE-Lrx5arD0-X801yRzdSAuBZQmXh', 
     #      'FlowNetPytorch/flownetc_EPE1.766.tar')
     
-    network_data = torch.load(model_path)
+    network_data = torch.load(model_path, device)
     model = models.__dict__[network_data['arch']](network_data).to(device)
     model.eval()
     cudnn.benchmark = True
