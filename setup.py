@@ -52,7 +52,7 @@ install_requires = [
     'psutil',
     'scikit-image', 
     'scikit-learn', 
-    'tensorflow-gpu==1.15.0',
+    'tensorflow-gpu==2.6.4',
     'torch', 
     'torchvision', 
     'tqdm',
