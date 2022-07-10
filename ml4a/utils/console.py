@@ -28,5 +28,3 @@ def warn(condition, message, verbose=True):
         return
     log('Warning: %s' % message, verbose)
 
-
-    

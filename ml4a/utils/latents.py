@@ -14,4 +14,3 @@ def interpolation_walk(endpoints, num_frames_per=30, loop=False):
                         for z_from, z_to in zip(z1, z2)], axis=0)
     Z = np.squeeze(Z)
     return Z
-        
