@@ -19,7 +19,7 @@
 
 ## Example
 
-ml4a bundles the source code of various open source repositories as [git submodules](https://github.com/ml4a/ml4a-guides/tree/ml4a.net/ml4a/models/submodules) and contains wrappers to streamline and simplify them. For example, to generate sample images with StyleGAN2:
+ml4a bundles the source code of various open source repositories as [git submodules](https://github.com/ml4a/ml4a/tree/master/ml4a/models/submodules) and contains wrappers to streamline and simplify them. For example, to generate sample images with StyleGAN2:
 
 ```
 from ml4a import image
