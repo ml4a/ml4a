@@ -48,7 +48,7 @@ install_requires = [
     'omegaconf==2.0.0',
     'opencv-python',
     'Pillow',
-    'pytorch-lightning==1.0.8',
+    'pytorch-lightning==1.6.0',
     'psutil',
     'scikit-image', 
     'scikit-learn', 
