@@ -12,7 +12,10 @@ import PIL.Image
 from IPython.display import clear_output, Image, display, HTML
 import numpy as np
 import scipy.misc
-import tensorflow as tf
+import imageio
+from skimage.transform import resize
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 
 #Create a session and load the Inception graph, then print the available layers.
@@ -133,6 +136,6 @@ def get_mask_sizes(init_size, oct_n, oct_s):
     return sizes
 
 def load_image(path, h, w):
-    img0 = scipy.misc.imread(path, mode='RGB')
-    img0 = scipy.misc.imresize(img0, (h, w)).astype('float64')
+    img0 = imageio.imread(path)
+    img0 = resize(img0, (h, w))
     return img0
